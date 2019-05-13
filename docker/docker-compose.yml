@@ -1,0 +1,23 @@
+version: "3.5"
+services:
+  variant-formatter:
+    build: 
+      context: variant-formatter
+    environment:
+      HGVS_SEQREPO_DIR: /usr/local/share/seqrepo/2018-08-21
+      UTA_DB_URL: postgresql://anonymous@uta/uta/uta_20171026
+    ports:
+    - "1234:1234"
+    volumes:
+    - seqrepo-data:/usr/local/share/seqrepo
+  seqrepo:
+    image: biocommons/seqrepo:latest
+    volumes:
+    - seqrepo-data:/usr/local/share/seqrepo
+  uta:
+    image: biocommons/uta:uta_20171026
+    ports:
+      - "4356:5432"
+
+volumes:
+  seqrepo-data:
