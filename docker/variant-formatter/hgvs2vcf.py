@@ -20,8 +20,22 @@ from hgvs.parser import Parser
 
 _logger = logging.getLogger(__name__)
 
-def h2v (babelfish, variant):
+def h2v(babelfish, variant, keep_left_anchor=True):
     (chrom, pos, ref, alt, typ) = babelfish.hgvs_to_vcf(variant)
+
+    if not(keep_left_anchor):
+        pfx = os.path.commonprefix([ref, alt])
+        lp = len(pfx)
+        if lp > 0:
+            print('stripping ', pfx)
+            ref = ref[lp:]
+            alt = alt[lp:]
+            pos += lp
+            if ref == '':
+                ref = '.'
+            if alt == '':
+                alt = '.'
+
     return {'chrom': chrom, 'pos': pos, 'ref': ref, 'alt': alt, 'type': typ}
 
 if __name__ == '__main__':
