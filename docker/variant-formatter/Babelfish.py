@@ -3,6 +3,7 @@
 import bioutils.assemblies
 
 import hgvs.normalizer
+import hgvs.assemblymapper
 
 def _as_interbase(posedit):
     if posedit.edit.type == "ins":
@@ -22,13 +23,14 @@ class Babelfish:
                                              cross_boundaries=False,
                                              shuffle_direction=5,
                                              validate=False)
+        self.assembly_mapper = hgvs.assemblymapper.AssemblyMapper(hdp, assembly_name=assembly_name)
         self.ac_to_chr_name_map = {
             sr["refseq_ac"]: sr["name"]
-            for sr in bioutils.assemblies.get_assembly("GRCh37")["sequences"]}
+            for sr in bioutils.assemblies.get_assembly(assembly_name)["sequences"]}
 
 
 
-    def hgvs_to_vcf(self, var_g):
+    def hgvs_to_vcf(self, var):
         """**EXPERIMENTAL**
 
         converts a single hgvs allele to (chr, pos, ref, alt) using
@@ -39,10 +41,16 @@ class Babelfish:
 
         """
 
-        if var_g.type != "g":
-            raise RuntimeError("Expected g. variant, got {var_g}".format(var_g=var_g))
+        if var.type == "g":
+            var = var
+        elif var.type == "c":
+            var = self.assembly_mapper.c_to_g(var)
+        elif var.type == "n":
+            var = self.assembly_mapper.n_to_g(var)
+        else:
+            raise RuntimeError("Expected g. variant, got {var}".format(var=var))
 
-        vleft = self.hn.normalize(var_g)
+        vleft = self.hn.normalize(var)
 
         (start_i, end_i) = _as_interbase(vleft.posedit)
 
