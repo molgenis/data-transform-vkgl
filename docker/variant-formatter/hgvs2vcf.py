@@ -17,7 +17,7 @@ import hgvs.dataproviders.uta
 
 from Babelfish import Babelfish
 from hgvs.parser import Parser
-from hgvs.exceptions import HGVSParseError
+from hgvs.exceptions import HGVSParseError, HGVSDataNotAvailableError, HGVSInvalidIntervalError, HGVSInvalidVariantError
 
 _logger = logging.getLogger(__name__)
 
@@ -26,7 +26,10 @@ parser = Parser()
 def h2v(babelfish, gdna, keep_left_anchor=True):
     try:
         variant = parser.parse_hgvs_variant(gdna)
-        (chrom, pos, ref, alt, typ) = babelfish.hgvs_to_vcf(variant)
+        vcf = babelfish.hgvs_to_vcf(variant)
+        if vcf == None:
+            return {"error":  "not a variant: " + str(variant)}
+        (chrom, pos, ref, alt, typ) = vcf
 
         if not(keep_left_anchor):
             pfx = os.path.commonprefix([ref, alt])
@@ -43,6 +46,14 @@ def h2v(babelfish, gdna, keep_left_anchor=True):
         return {'chrom': chrom, 'pos': pos, 'ref': ref, 'alt': alt, 'type': typ}
     except HGVSParseError as e:
         return {'error': e.message}
+    except HGVSDataNotAvailableError as e:
+        return {'error': e.message}
+    except HGVSInvalidIntervalError as e:
+        return {'error': e.message}
+    except HGVSInvalidVariantError as e:
+        return {'error': e.message} 
+    except:
+        return {'error': "Unexpected error processing :" + str(gdna)}
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
