@@ -21,7 +21,9 @@ class h2v:
         
         variants = json.loads(web.data())
         keep_left_anchor = str2bool(web.input(keep_left_anchor="False").keep_left_anchor)
-        result = [hgvs2vcf.h2v(babelfish37, parser.parse_hgvs_variant(variant), keep_left_anchor) for variant in variants]
+        result = [hgvs2vcf.h2v(babelfish37, variant, keep_left_anchor) for variant in variants]
+        hdp.close()
+        
         return json.dumps(result)
 
 if __name__ == "__main__":
