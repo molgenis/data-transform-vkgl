@@ -7,6 +7,8 @@ import static org.apache.camel.util.toolbox.AggregationStrategies.groupedBody;
 
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.dataformat.csv.CsvDataFormat;
@@ -17,7 +19,7 @@ public class MySpringBootRouter extends RouteBuilder {
 
   private static final String LUMC_HEADERS = "refseq_build\tchromosome\tgDNA_normalized\tvariant_effect\tgeneid\tcDNA\tProtein";
 
-  private static final String VCF_HEADERS = "chrom\tpos\tref\talt\tsignificance\terror";
+  private static final String VCF_HEADERS = "chrom\tpos\tref\talt\tsignificance";
 
   private static final String RADBOUD_HEADERS = "chromosome_orig\tstart_orig\tstop_orig\tref_orig\talt_orig\tgene\tcdna\ttranscript\tprotein\tempty1\tempty2\texon\tempty3\tclassification";
 
@@ -51,6 +53,8 @@ public class MySpringBootRouter extends RouteBuilder {
     }
   }
 
+  Pattern p = Pattern.compile("[A-Z]{2}_\\d+\\.\\d+(\\(.+\\)):[ncg].*");
+
   private void radboud(Map body) {
     switch (body.get("classification").toString()) {
       case "class 1":
@@ -71,17 +75,24 @@ public class MySpringBootRouter extends RouteBuilder {
       default:
         body.put("error", "Unknown significance: " + body.get("classification").toString());
     }
+    String hgvc = (String) body.get("cdna");
+    Matcher matcher = p.matcher(hgvc);
+    if(matcher.matches()){
+      hgvc = hgvc.substring(matcher.start(), matcher.start(1)) +
+          hgvc.substring(matcher.end(1), matcher.end());
+    }
+    body.put("cdna_patched", hgvc);
   }
 
   @Override
   public void configure() {
 
     from("direct:write-error")
-        .aggregate(header(FILE_NAME))
-        .strategy(groupedBody())
-        .completionTimeout(10000)
-        .marshal(new CsvDataFormat().setDelimiter('\t')
-            .setHeader((RADBOUD_HEADERS+"\terror").split("\t")).setHeaderDisabled(true))
+        .marshal(
+            new CsvDataFormat()
+                .setDelimiter('\t')
+                .setHeader((RADBOUD_HEADERS + "\tcdna_patched\terror").split("\t"))
+                .setHeaderDisabled(true))
         .to("file:result?fileExist=Append");
 
     from("direct:write-result")
@@ -90,13 +101,13 @@ public class MySpringBootRouter extends RouteBuilder {
         .completionTimeout(30000)
         .to("log:done")
         .marshal(new CsvDataFormat().setDelimiter('\t')
-            .setHeader((RADBOUD_HEADERS+'\t'+VCF_HEADERS).split("\t")))
+            .setHeader((RADBOUD_HEADERS+"\tcdna_patched"+VCF_HEADERS).split("\t")))
         .to("file:result");
 
     from("direct:h2v")
         .to("log:httprequest")
         .transform()
-        .jsonpath("$[*].cdna")
+        .jsonpath("$[*].cdna_patched")
         .marshal()
         .json(Jackson)
         .setHeader(HTTP_METHOD, constant("POST"))
