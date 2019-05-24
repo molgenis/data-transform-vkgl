@@ -3,7 +3,7 @@ Variant annotator for vkgl variant sharing.
 Consists of two parts:
 
 ## hgvs translator
-Currently converts hgvs to vcf.
+Uses the [`biocommons/hgvs`](https://github.com/biocommons/hgvs) library to convert hgvs to vcf.
 To start the translator service:
 ```
 > cd docker
