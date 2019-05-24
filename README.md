@@ -4,7 +4,7 @@ Consists of two parts:
 
 ## hgvs translator
 Currently converts hgvs to vcf.
-To start the annotator service:
+To start the translator service:
 ```
 > cd docker
 > docker-compose up
