@@ -22,6 +22,7 @@ and annotate the lines with vcf info retrieved from the hgvs annotator.
 Results will be stored in results dir once finished.
 Results with an error message will be routed to error file.
 
+Requires JDK 8.
 To run the pipeline:
 ```
 > mvn clean spring-boot:run
