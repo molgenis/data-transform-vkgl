@@ -2,11 +2,11 @@ package org.molgenis;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.molgenis.MySpringBootRouter.matchesOriginalRef;
+import static org.molgenis.ReferenceSequenceValidator.matchesOriginalRef;
 
 import org.junit.jupiter.api.Test;
 
-class MySpringBootRouterTest {
+class ReferenceSequenceValidatorTest {
 
   @Test
   void matchesOriginalRefTestFalse() {
