@@ -111,10 +111,6 @@ public class MySpringBootRouter extends RouteBuilder {
     body.put("hgvs_normalized_vkgl", hgvs_g);
   }
 
-  private boolean isEmptyValue(String value) {
-    return value.isEmpty() || value.equals("NULL") || value.equals(".");
-  }
-
   private int getIntFromString(String stringToConvert) {
     return Integer.parseInt(stringToConvert, 10);
   }

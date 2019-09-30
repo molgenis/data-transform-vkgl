@@ -74,8 +74,8 @@ public class HgvsService {
         start = start + 1;
         ref = ref.substring(1);
       }
-      return getHgvsGForDelIns(transcript, Integer.toString(start), ref,
-          Integer.toString(stop), "del");
+      return getHgvsGForDelIns(transcript, Integer.toString(start), ref, Integer.toString(stop),
+          "del");
     } else if ((ref.length() == 1 && alt.length() > 1) || ref.equals(".")) {
       if (!ref.equals(".")) {
         alt = alt.substring(1);
