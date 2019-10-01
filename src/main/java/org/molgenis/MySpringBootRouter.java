@@ -70,11 +70,13 @@ public class MySpringBootRouter extends RouteBuilder {
         .marshal()
         .json(Jackson)
         .setHeader(HTTP_METHOD, constant("POST"))
-        .to("https4://variants.edge.molgenis.org/h2v?keep_left_anchor=True&strict=True")
+        .to("https4://variants.molgenis.org/h2v?keep_left_anchor=True&strict=True")
         .unmarshal()
         .json(Jackson)
         .to("log:httpresponse");
+  }
 
+  private void convertHgvsToVcf(String errorFile) {
     from("direct:hgvs2vcf")
         .description("Validates the normalized gDNA.")
         .aggregate(header(FILE_NAME), groupedBody())
@@ -83,10 +85,13 @@ public class MySpringBootRouter extends RouteBuilder {
         .enrich("direct:h2v", this::mergeLists)
         .split()
         .body()
+        .choice()
+        .when(simple("${body['ref_orig']} != null"))
         .process().body(Map.class, refValidator::validateOriginalRef)
+        .end()
         .choice().when(simple("${body['error']} != null"))
         .to("log:error")
-        .setHeader(FILE_NAME, constant("test_error.txt"))
+        .setHeader(FILE_NAME, constant(errorFile))
         .to("direct:write-error")
         .otherwise()
         .to("direct:write-result")
@@ -96,7 +101,8 @@ public class MySpringBootRouter extends RouteBuilder {
 
   @Override
   public void configure() {
-    String fileName = "test.txt";
+    String fileName = "lumc.txt";
+    String errorFile = fileName.split("\\.")[0] + "_error." + fileName.split("\\.")[1];
     String fileAddress = "./src/test/resources/" + fileName;
     Path filePath = Paths.get(fileAddress);
     String header = null;
@@ -113,6 +119,7 @@ public class MySpringBootRouter extends RouteBuilder {
       writeError(ALISSA_HEADERS);
       writeResult(ALISSA_HEADERS);
       normalizeData();
+      convertHgvsToVcf(errorFile);
       from("file:src/test/resources/?fileName=" + fileName + "&noop=true")
           .unmarshal(new CsvDataFormat().setDelimiter('\t').setUseMaps(true))
           .split().body()
@@ -123,6 +130,7 @@ public class MySpringBootRouter extends RouteBuilder {
       writeError(LUMC_HEADERS);
       writeResult(LUMC_HEADERS);
       normalizeData();
+      convertHgvsToVcf(errorFile);
       from("file:src/test/resources/?fileName=" + fileName + "&noop=true")
           .unmarshal(new CsvDataFormat().setDelimiter('\t').setUseMaps(true))
           .split().body()
@@ -133,6 +141,7 @@ public class MySpringBootRouter extends RouteBuilder {
       writeError(RADBOUD_HEADERS);
       writeResult(RADBOUD_HEADERS);
       normalizeData();
+      convertHgvsToVcf(errorFile);
       from("file:src/test/resources/?fileName=" + fileName + "&noop=true")
           .unmarshal(new CsvDataFormat().setDelimiter('\t').setUseMaps(true).setHeader(
               RADBOUD_HEADERS.split("\t")))

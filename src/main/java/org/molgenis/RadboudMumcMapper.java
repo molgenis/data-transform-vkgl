@@ -29,16 +29,16 @@ public class RadboudMumcMapper extends InputDataMapper {
 
   @Override
   public String getHeader() {
-    return "chromosome_orig\tstart_orig\tstop_orig\tref_orig\talt_orig\tgene\ttranscript\tprotein\tempty1\texon\tempty2\tclassification";
+    return "chromosome_orig\tstart\tstop\tref_orig\talt_orig\tgene\ttranscript\tprotein\tempty1\texon\tempty2\tclassification";
   }
 
   @Override
   public void mapData(Map body) {
-    String start = (String) body.get("start_orig");
+    String start = (String) body.get("start");
     String ref = (String) body.get("ref_orig");
     String alt = (String) body.get("alt_orig");
     String chromosome = (String) body.get("chromosome_orig");
-    String stop = (String) body.get("stop_orig");
+    String stop = (String) body.get("stop");
 
     String hgvs_g = super.hgvsRetriever.getHgvsG(ref, alt, chromosome, getIntFromString(start),
         getIntFromString(stop));

@@ -35,7 +35,7 @@ public class LumcMapper extends InputDataMapper {
   @Override
   public void mapData(Map body) {
     mapClassification(body);
-    body.put("hgvs_normalized", body.get("gDNA_normalized"));
+    body.put("hgvs_normalized_vkgl", body.get("gDNA_normalized"));
     body.remove("gDNA_normalized");
   }
 }
