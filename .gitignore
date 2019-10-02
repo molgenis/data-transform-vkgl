@@ -3,3 +3,4 @@ result
 **/*.pyc
 .idea/
 target/
+src/test/inbox/

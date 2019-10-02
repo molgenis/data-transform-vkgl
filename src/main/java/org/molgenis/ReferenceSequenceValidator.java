@@ -17,7 +17,7 @@ public class ReferenceSequenceValidator {
   }
 
   void validateOriginalRef(Map<String, Object> body) {
-    if (!body.containsKey("error")) {
+    if (!body.containsKey("error") && body.containsKey("ref_orig")) {
       String ref = (String) body.get("ref");
       String refOrig = (String) body.get("ref_orig");
       int startOrig = Integer.parseInt((String) body.get("start"), 10);
