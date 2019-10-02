@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 public class MySpringBootRouter extends RouteBuilder {
 
   private static final String VCF_HEADERS = "hgvs_normalized_vkgl\tchrom\tpos\tref\talt\ttype\tsignificance";
+  public static final String ERROR_HEADERS = "hgvs_normalized_vkgl\tcdna_patched\terror";
 
   private static final ReferenceSequenceValidator refValidator = new ReferenceSequenceValidator();
 
@@ -35,15 +36,12 @@ public class MySpringBootRouter extends RouteBuilder {
 
   @Override
   public void configure() {
-    String fileName = "test.txt";
-    String errorFile = fileName.split("\\.")[0] + "_error." + fileName.split("\\.")[1];
-    String inbox = "./src/test/resources/";
     from("direct:write-alissa-error")
         .marshal(
             new CsvDataFormat()
                 .setDelimiter('\t')
                 .setHeader(
-                    (ALISSA_HEADERS + "\thgvs_normalized_vkgl\tcdna_patched\terror").split("\t"))
+                    (ALISSA_HEADERS + "\t" + ERROR_HEADERS).split("\t"))
                 .setHeaderDisabled(true))
         .to("file:result?fileExist=Append");
 
@@ -52,7 +50,7 @@ public class MySpringBootRouter extends RouteBuilder {
             new CsvDataFormat()
                 .setDelimiter('\t')
                 .setHeader(
-                    (ALISSA_HEADERS + "\thgvs_normalized_vkgl\tcdna_patched\terror").split("\t"))
+                    (RADBOUD_HEADERS + "\t" + ERROR_HEADERS).split("\t"))
                 .setHeaderDisabled(true))
         .to("file:result?fileExist=Append");
 
@@ -61,11 +59,12 @@ public class MySpringBootRouter extends RouteBuilder {
             new CsvDataFormat()
                 .setDelimiter('\t')
                 .setHeader(
-                    (ALISSA_HEADERS + "\thgvs_normalized_vkgl\tcdna_patched\terror").split("\t"))
+                    (LUMC_HEADERS + "\t" + ERROR_HEADERS).split("\t"))
                 .setHeaderDisabled(true))
         .to("file:result?fileExist=Append");
 
     from("direct:write-error")
+        .setHeader(FILE_NAME, simple("${header.CamelFileName}.error"))
         .recipientList(simple("direct:write-${header.labType}-error"));
 
     from("direct:marshall-alissa-result")
@@ -113,7 +112,6 @@ public class MySpringBootRouter extends RouteBuilder {
         .process().body(Map.class, refValidator::validateOriginalRef)
         .choice().when(simple("${body['error']} != null"))
         .to("log:error")
-        .setHeader(FILE_NAME, constant(errorFile))
         .to("direct:write-error")
         .otherwise()
         .to("direct:write-result")
