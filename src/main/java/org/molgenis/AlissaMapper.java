@@ -1,30 +1,17 @@
 package org.molgenis;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class AlissaMapper extends InputDataMapper {
 
-  @Override
-  public void mapClassification(Map body) {
-    switch (body.get("classification").toString()) {
-      case "BENIGN":
-        body.put("significance", "b");
-        break;
-      case "LIKELY_BENIGN":
-        body.put("significance", "lb");
-        break;
-      case "VOUS":
-        body.put("significance", "vus");
-        break;
-      case "LIKELY_PATHOGENIC":
-        body.put("significance", "lp");
-        break;
-      case "PATHOGENIC":
-        body.put("significance", "p");
-        break;
-      default:
-        body.put("error", "Unknown significance: " + body.get("classification").toString());
-    }
+  static {
+    classificationTranslation = new HashMap<>();
+    classificationTranslation.put("BENIGN", "b");
+    classificationTranslation.put("LIKELY_BENIGN", "lb");
+    classificationTranslation.put("VOUS", "v");
+    classificationTranslation.put("LIKELY_PATHOGENIC", "lp");
+    classificationTranslation.put("PATHOGENIC", "p");
   }
 
   @Override
@@ -34,7 +21,8 @@ public class AlissaMapper extends InputDataMapper {
 
   @Override
   public void mapData(Map body) {
-    mapClassification(body);
+    String originalClassification = body.get("classification").toString();
+    mapClassification(body, originalClassification);
     String start = (String) body.get("start");
     // Ref and alt are specified as such in alissa file
     String ref = (String) body.get("ref");
