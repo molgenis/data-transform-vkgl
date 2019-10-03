@@ -40,6 +40,7 @@ public class AlissaMapper extends InputDataMapper {
     if (protein.equals("NULL")) {
       protein = "";
     }
+    body.put("p_nomen", protein);
     String stop = (String) body.get("stop");
     String hgvs = hgvsRetriever
         .getHgvs(transcript, cDNA, ref, alt, super.getIntFromString(start), getIntFromString(stop),
