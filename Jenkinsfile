@@ -52,6 +52,7 @@ pipeline {
             }
             post {
                 always {
+                    junit '**/target/surefire-reports/**.xml'
                     container('maven') {
                         sh "curl -s https://codecov.io/bash | bash -s - -c -F unit -K -C ${GIT_COMMIT}"
                         sh "mvn -q -B sonar:sonar -Dsonar.login=${SONAR_TOKEN} -Dsonar.ws.timeout=120"
