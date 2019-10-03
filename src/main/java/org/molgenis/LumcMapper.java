@@ -6,21 +6,22 @@ public class LumcMapper extends InputDataMapper {
 
   @Override
   public void mapClassification(Map body) {
+    String significance = "significance";
     switch (body.get("variant_effect").toString()) {
       case "-":
-        body.put("significance", "b");
+        body.put(significance, "b");
         break;
       case "-?":
-        body.put("significance", "lb");
+        body.put(significance, "lb");
         break;
       case "+?":
-        body.put("significance", "lp");
+        body.put(significance, "lp");
         break;
       case "+":
-        body.put("significance", "p");
+        body.put(significance, "p");
         break;
       case "?":
-        body.put("significance", "vus");
+        body.put(significance, "vus");
         break;
       default:
         body.put("error", "Unknown significance: " + body.get("variant_effect").toString());
