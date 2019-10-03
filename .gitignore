@@ -1,3 +1,6 @@
 src/test/resources
 result
 **/*.pyc
+.idea/
+target/
+src/test/inbox/

@@ -4,11 +4,12 @@ import static org.apache.camel.Exchange.FILE_NAME;
 import static org.apache.camel.Exchange.HTTP_METHOD;
 import static org.apache.camel.model.dataformat.JsonLibrary.Jackson;
 import static org.apache.camel.util.toolbox.AggregationStrategies.groupedBody;
+import static org.molgenis.GenericDataMapper.ALISSA_HEADERS;
+import static org.molgenis.GenericDataMapper.LUMC_HEADERS;
+import static org.molgenis.GenericDataMapper.RADBOUD_HEADERS;
 
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.dataformat.csv.CsvDataFormat;
@@ -17,11 +18,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class MySpringBootRouter extends RouteBuilder {
 
-  private static final String LUMC_HEADERS = "refseq_build\tchromosome\tgDNA_normalized\tvariant_effect\tgeneid\tcDNA\tProtein";
+  private static final String VCF_HEADERS = "hgvs_normalized_vkgl\tchrom\tpos\tref\talt\ttype\tsignificance";
+  private static final String ERROR_HEADERS = "hgvs_normalized_vkgl\tcdna_patched\terror";
 
-  private static final String VCF_HEADERS = "chrom\tpos\tref\talt\tsignificance";
+  private static final ReferenceSequenceValidator refValidator = new ReferenceSequenceValidator();
 
-  private static final String RADBOUD_HEADERS = "chromosome_orig\tstart_orig\tstop_orig\tref_orig\talt_orig\tgene\tcdna\ttranscript\tprotein\tempty1\tempty2\texon\tempty3\tclassification";
+  private static final GenericDataMapper genericMapper = new GenericDataMapper();
 
   private Exchange mergeLists(Exchange variantExchange, Exchange responseExchange) {
     List<Map<String, Object>> variants = variantExchange.getIn().getBody(List.class);
@@ -32,86 +34,71 @@ public class MySpringBootRouter extends RouteBuilder {
     return variantExchange;
   }
 
-  private void lumc(Map body) {
-    switch (body.get("variant_effect").toString()) {
-      case "-":
-        body.put("significance", "b");
-        break;
-      case "-?":
-        body.put("significance", "lb");
-        break;
-      case "+?":
-        body.put("significance", "lp");
-        break;
-      case "+":
-        body.put("significance", "p");
-        break;
-      case "?":
-        body.put("significance", "vus");
-        break;default:
-      body.put("error", "Unknown significance: " + body.get("variant_effect").toString());
-    }
-  }
-
-  Pattern p = Pattern.compile("[A-Z]{2}_\\d+\\.\\d+(\\(.+\\)):[ncg].*");
-
-  private void radboud(Map body) {
-    switch (body.get("classification").toString()) {
-      case "class 1":
-        body.put("significance", "b");
-        break;
-      case "class 2":
-        body.put("significance", "lb");
-        break;
-      case "class 3":
-        body.put("significance", "vus");
-        break;
-      case "class 4":
-        body.put("significance", "lp");
-        break;
-      case "class 5":
-        body.put("significance", "p");
-        break;
-      default:
-        body.put("error", "Unknown significance: " + body.get("classification").toString());
-    }
-    String hgvc = (String) body.get("cdna");
-    Matcher matcher = p.matcher(hgvc);
-    if(matcher.matches()){
-      hgvc = hgvc.substring(matcher.start(), matcher.start(1)) +
-          hgvc.substring(matcher.end(1), matcher.end());
-    }
-    body.put("cdna_patched", hgvc);
-  }
-
   @Override
   public void configure() {
-
-    from("direct:write-error")
+    String resultFile = "file:result";
+    String errorFile = "file:result?fileExist=Append";
+    from("direct:write-alissa-error")
         .marshal(
             new CsvDataFormat()
                 .setDelimiter('\t')
-                .setHeader((RADBOUD_HEADERS + "\tcdna_patched\terror").split("\t"))
+                .setHeader(
+                    (ALISSA_HEADERS + "\t" + ERROR_HEADERS).split("\t"))
                 .setHeaderDisabled(true))
-        .to("file:result?fileExist=Append");
+        .to(errorFile);
+
+    from("direct:write-radboud-error")
+        .marshal(
+            new CsvDataFormat()
+                .setDelimiter('\t')
+                .setHeader(
+                    (RADBOUD_HEADERS + "\t" + ERROR_HEADERS).split("\t"))
+                .setHeaderDisabled(true))
+        .to(errorFile);
+
+    from("direct:write-lumc-error")
+        .marshal(
+            new CsvDataFormat()
+                .setDelimiter('\t')
+                .setHeader(
+                    (LUMC_HEADERS + "\t" + ERROR_HEADERS).split("\t"))
+                .setHeaderDisabled(true))
+        .to(errorFile);
+
+    from("direct:write-error")
+        .setHeader(FILE_NAME, simple("${header.CamelFileName}.error"))
+        .recipientList(simple("direct:write-${header.labType}-error"));
+
+    from("direct:marshall-alissa-result")
+        .marshal(new CsvDataFormat().setDelimiter('\t')
+            .setHeader((ALISSA_HEADERS + '\t' + VCF_HEADERS).split("\t")))
+        .to(resultFile);
+
+    from("direct:marshall-radboud-result")
+        .marshal(new CsvDataFormat().setDelimiter('\t')
+            .setHeader((RADBOUD_HEADERS + '\t' + VCF_HEADERS).split("\t")))
+        .to(resultFile);
+
+    from("direct:marshall-lumc-result")
+        .marshal(new CsvDataFormat().setDelimiter('\t')
+            .setHeader((LUMC_HEADERS + '\t' + VCF_HEADERS).split("\t")))
+        .to(resultFile);
 
     from("direct:write-result")
         .aggregate(header(FILE_NAME))
         .strategy(groupedBody())
-        .completionTimeout(30000)
+        .completionTimeout(60000)
         .to("log:done")
-        .marshal(new CsvDataFormat().setDelimiter('\t')
-            .setHeader((RADBOUD_HEADERS+"\tcdna_patched"+VCF_HEADERS).split("\t")))
-        .to("file:result");
+        .recipientList(simple("direct:marshall-${header.labType}-result"));
 
     from("direct:h2v")
         .to("log:httprequest")
         .transform()
-        .jsonpath("$[*].cdna_patched")
+        .jsonpath("$[*].hgvs_normalized_vkgl")
         .marshal()
         .json(Jackson)
         .setHeader(HTTP_METHOD, constant("POST"))
-        .to("http4://localhost:1234/h2v?keep_left_anchor=False")
+        .to("https4://variants.molgenis.org/h2v?keep_left_anchor=True&strict=True")
         .unmarshal()
         .json(Jackson)
         .to("log:httpresponse");
@@ -124,26 +111,23 @@ public class MySpringBootRouter extends RouteBuilder {
         .enrich("direct:h2v", this::mergeLists)
         .split()
         .body()
+        .process().body(Map.class, refValidator::validateOriginalRef)
         .choice().when(simple("${body['error']} != null"))
-          .to("log:error")
-          .setHeader(FILE_NAME, constant("error.txt"))
-          .to("direct:write-error")
+        .to("log:error")
+        .to("direct:write-error")
         .otherwise()
-          .to("direct:write-result")
+        .to("direct:write-result")
         .end()
         .end();
 
-    from("file:src/test/resources/?fileName=radboud.tsv&noop=true")
+    from("file:src/test/inbox/")
+        .choice().when(simple("${header.CamelFileName} contains 'radboud'"))
         .unmarshal(new CsvDataFormat().setDelimiter('\t').setUseMaps(true).setHeader(
-            RADBOUD_HEADERS.split("\t")))
+            RADBOUD_HEADERS.split("\t"))).otherwise()
+        .unmarshal(new CsvDataFormat().setDelimiter('\t').setUseMaps(true))
+        .end()
         .split().body()
-        .process().body(Map.class, this::radboud)
+        .process().exchange(genericMapper::mapData)
         .to("direct:hgvs2vcf");
-
-//    from("file:src/test/resources/?fileName=lumc.txt&noop=true")
-//        .unmarshal(new CsvDataFormat().setDelimiter('\t').setUseMaps(true))
-//        .split().body()
-//        .process().body(Map.class, this::lumc)
-//        .to("direct:hgvs2vcf");
   }
 }
