@@ -5,38 +5,38 @@ import java.util.Map;
 
 public class HgvsService {
 
-  private static Map<String, String> chromosome_transcripts;
+  private static Map<String, String> chromosomeTranscripts;
 
   static {
-    chromosome_transcripts = new HashMap<>();
-    chromosome_transcripts.put("chr1", "NC_000001.10");
-    chromosome_transcripts.put("chr2", "NC_000002.11");
-    chromosome_transcripts.put("chr3", "NC_000003.11");
-    chromosome_transcripts.put("chr4", "NC_000004.11");
-    chromosome_transcripts.put("chr5", "NC_000005.9");
-    chromosome_transcripts.put("chr6", "NC_000006.11");
-    chromosome_transcripts.put("chr7", "NC_000007.13");
-    chromosome_transcripts.put("chr8", "NC_000008.10");
-    chromosome_transcripts.put("chr9", "NC_000009.11");
-    chromosome_transcripts.put("chr10", "NC_000010.10");
-    chromosome_transcripts.put("chr11", "NC_000011.9");
-    chromosome_transcripts.put("chr12", "NC_000012.11");
-    chromosome_transcripts.put("chr13", "NC_000013.10");
-    chromosome_transcripts.put("chr14", "NC_000014.8");
-    chromosome_transcripts.put("chr15", "NC_000015.9");
-    chromosome_transcripts.put("chr16", "NC_000016.9");
-    chromosome_transcripts.put("chr17", "NC_000017.10");
-    chromosome_transcripts.put("chr18", "NC_000018.9");
-    chromosome_transcripts.put("chr19", "NC_000019.9");
-    chromosome_transcripts.put("chr20", "NC_000020.10");
-    chromosome_transcripts.put("chr21", "NC_000021.8");
-    chromosome_transcripts.put("chr22", "NC_000022.10");
-    chromosome_transcripts.put("chrX", "NC_000023.10");
-    chromosome_transcripts.put("chrY", "NC_000024.9");
+    chromosomeTranscripts = new HashMap<>();
+    chromosomeTranscripts.put("chr1", "NC_000001.10");
+    chromosomeTranscripts.put("chr2", "NC_000002.11");
+    chromosomeTranscripts.put("chr3", "NC_000003.11");
+    chromosomeTranscripts.put("chr4", "NC_000004.11");
+    chromosomeTranscripts.put("chr5", "NC_000005.9");
+    chromosomeTranscripts.put("chr6", "NC_000006.11");
+    chromosomeTranscripts.put("chr7", "NC_000007.13");
+    chromosomeTranscripts.put("chr8", "NC_000008.10");
+    chromosomeTranscripts.put("chr9", "NC_000009.11");
+    chromosomeTranscripts.put("chr10", "NC_000010.10");
+    chromosomeTranscripts.put("chr11", "NC_000011.9");
+    chromosomeTranscripts.put("chr12", "NC_000012.11");
+    chromosomeTranscripts.put("chr13", "NC_000013.10");
+    chromosomeTranscripts.put("chr14", "NC_000014.8");
+    chromosomeTranscripts.put("chr15", "NC_000015.9");
+    chromosomeTranscripts.put("chr16", "NC_000016.9");
+    chromosomeTranscripts.put("chr17", "NC_000017.10");
+    chromosomeTranscripts.put("chr18", "NC_000018.9");
+    chromosomeTranscripts.put("chr19", "NC_000019.9");
+    chromosomeTranscripts.put("chr20", "NC_000020.10");
+    chromosomeTranscripts.put("chr21", "NC_000021.8");
+    chromosomeTranscripts.put("chr22", "NC_000022.10");
+    chromosomeTranscripts.put("chrX", "NC_000023.10");
+    chromosomeTranscripts.put("chrY", "NC_000024.9");
   }
 
   private String getTranscriptFromChromosome(String chromosome) {
-    return chromosome_transcripts.get(chromosome);
+    return chromosomeTranscripts.get(chromosome);
   }
 
   private String getHgvsGForSnp(String transcript, String start, String ref, String alt) {
@@ -52,10 +52,11 @@ public class HgvsService {
     return value.isEmpty() || value.equals("NULL") || value.equals(".");
   }
 
+  @SuppressWarnings("squid:CommentedOutCodeLine")
   public String getHgvs(String nmTranscript, String cDNA, String ref, String alt, int start,
       int stop, String chromosome) {
     String hgvs;
-    //if (ref and alt not empty) or (transcript+cDNA would be invalid)
+    // if (ref and alt not empty) or (transcript+cDNA would be invalid)
     if (!(isEmptyValue(ref) && isEmptyValue(alt)) || (isEmptyValue(nmTranscript) || isEmptyValue(
         cDNA) || nmTranscript.startsWith("NC"))) {
       hgvs = getHgvsG(ref, alt, chromosome, start, stop);
