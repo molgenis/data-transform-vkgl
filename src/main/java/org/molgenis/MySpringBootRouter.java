@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 public class MySpringBootRouter extends RouteBuilder {
 
   private static final String VCF_HEADERS = "hgvs_normalized_vkgl\tchrom\tpos\tref\talt\ttype\tsignificance";
-  public static final String ERROR_HEADERS = "hgvs_normalized_vkgl\tcdna_patched\terror";
+  private static final String ERROR_HEADERS = "hgvs_normalized_vkgl\tcdna_patched\terror";
 
   private static final ReferenceSequenceValidator refValidator = new ReferenceSequenceValidator();
 
@@ -36,6 +36,8 @@ public class MySpringBootRouter extends RouteBuilder {
 
   @Override
   public void configure() {
+    String resultFile = "file:result";
+    String errorFile = "file:result?fileExist=Append";
     from("direct:write-alissa-error")
         .marshal(
             new CsvDataFormat()
@@ -43,7 +45,7 @@ public class MySpringBootRouter extends RouteBuilder {
                 .setHeader(
                     (ALISSA_HEADERS + "\t" + ERROR_HEADERS).split("\t"))
                 .setHeaderDisabled(true))
-        .to("file:result?fileExist=Append");
+        .to(errorFile);
 
     from("direct:write-radboud-error")
         .marshal(
@@ -52,7 +54,7 @@ public class MySpringBootRouter extends RouteBuilder {
                 .setHeader(
                     (RADBOUD_HEADERS + "\t" + ERROR_HEADERS).split("\t"))
                 .setHeaderDisabled(true))
-        .to("file:result?fileExist=Append");
+        .to(errorFile);
 
     from("direct:write-lumc-error")
         .marshal(
@@ -61,7 +63,7 @@ public class MySpringBootRouter extends RouteBuilder {
                 .setHeader(
                     (LUMC_HEADERS + "\t" + ERROR_HEADERS).split("\t"))
                 .setHeaderDisabled(true))
-        .to("file:result?fileExist=Append");
+        .to(errorFile);
 
     from("direct:write-error")
         .setHeader(FILE_NAME, simple("${header.CamelFileName}.error"))
@@ -70,17 +72,17 @@ public class MySpringBootRouter extends RouteBuilder {
     from("direct:marshall-alissa-result")
         .marshal(new CsvDataFormat().setDelimiter('\t')
             .setHeader((ALISSA_HEADERS + '\t' + VCF_HEADERS).split("\t")))
-        .to("file:result");
+        .to(resultFile);
 
     from("direct:marshall-radboud-result")
         .marshal(new CsvDataFormat().setDelimiter('\t')
             .setHeader((RADBOUD_HEADERS + '\t' + VCF_HEADERS).split("\t")))
-        .to("file:result");
+        .to(resultFile);
 
     from("direct:marshall-lumc-result")
         .marshal(new CsvDataFormat().setDelimiter('\t')
             .setHeader((LUMC_HEADERS + '\t' + VCF_HEADERS).split("\t")))
-        .to("file:result");
+        .to(resultFile);
 
     from("direct:write-result")
         .aggregate(header(FILE_NAME))
