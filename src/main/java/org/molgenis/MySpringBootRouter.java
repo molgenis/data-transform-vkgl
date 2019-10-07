@@ -43,7 +43,8 @@ public class MySpringBootRouter extends RouteBuilder {
   @Override
   public void configure() {
     String resultFile = "file:result";
-    String errorFile = "file:result?fileExist=Append";
+    String appendFile = "file:result?fileExist=Append";
+
     from("direct:write-alissa-error")
         .marshal(
             new CsvDataFormat()
@@ -51,7 +52,7 @@ public class MySpringBootRouter extends RouteBuilder {
                 .setHeader(
                     (ALISSA_HEADERS + "\t" + ERROR_HEADERS).split("\t"))
                 .setHeaderDisabled(true))
-        .to(errorFile);
+        .to(appendFile);
 
     from("direct:write-radboud-error")
         .marshal(
@@ -60,7 +61,7 @@ public class MySpringBootRouter extends RouteBuilder {
                 .setHeader(
                     (RADBOUD_HEADERS + "\t" + ERROR_HEADERS).split("\t"))
                 .setHeaderDisabled(true))
-        .to(errorFile);
+        .to(appendFile);
 
     from("direct:write-lumc-error")
         .marshal(
@@ -69,7 +70,7 @@ public class MySpringBootRouter extends RouteBuilder {
                 .setHeader(
                     (LUMC_HEADERS + "\t" + ERROR_HEADERS).split("\t"))
                 .setHeaderDisabled(true))
-        .to(errorFile);
+        .to(appendFile);
 
     from("direct:write-error")
         .setHeader(FILE_NAME, simple("vkgl_${file:name.noext}_error.txt"))
@@ -91,10 +92,10 @@ public class MySpringBootRouter extends RouteBuilder {
         .to(resultFile);
 
     from("direct:marshal-vkgl-result")
-        .setHeader(FILE_NAME, simple("vkgl_${file:name.noext}.tsv"))
         .marshal(new CsvDataFormat().setDelimiter('\t')
-            .setHeader((VKGL_HEADERS).split("\t")))
-        .to(resultFile);
+            .setHeader((VKGL_HEADERS).split("\t"))
+            .setHeaderDisabled(true))
+        .to("file:result?fileName=vkgl_test.tsv&fileExist=Append");
 
     from("direct:map-alissa-result")
         .split()
@@ -109,6 +110,7 @@ public class MySpringBootRouter extends RouteBuilder {
         .to("direct:marshal-vkgl-result");
 
     from("direct:map-radboud-result")
+        .setHeader(FILE_NAME, simple("vkgl_${file:name.noext}.tsv"))
         .split()
         .body()
         .process().body(Map.class, radboudMumcTableMapper::mapLine)
@@ -152,6 +154,9 @@ public class MySpringBootRouter extends RouteBuilder {
         .end();
 
     from("file:src/test/inbox/")
+        .bean(new FileCreator(),
+            "createOutputFile(\"result/vkgl_\"${file:name.noext}\".tsv\"," +
+                VKGL_HEADERS + ")")
         .choice().when(simple("${header.CamelFileName} contains 'radboud'"))
         .unmarshal(new CsvDataFormat().setDelimiter('\t').setUseMaps(true).setHeader(
             RADBOUD_HEADERS.split("\t"))).otherwise()
