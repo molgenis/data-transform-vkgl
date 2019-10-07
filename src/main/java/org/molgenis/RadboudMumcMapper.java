@@ -5,6 +5,7 @@ import java.util.Map;
 
 public class RadboudMumcMapper extends InputDataMapper {
 
+
   RadboudMumcMapper() {
     classificationTranslation = new HashMap<>();
     classificationTranslation.put("class 1", "b");

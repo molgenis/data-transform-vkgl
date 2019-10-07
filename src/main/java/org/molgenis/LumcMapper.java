@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class LumcMapper extends InputDataMapper {
 
-  public LumcMapper() {
+  LumcMapper() {
     classificationTranslation = new HashMap<>();
     classificationTranslation.put("-", "b");
     classificationTranslation.put("-?", "lb");
