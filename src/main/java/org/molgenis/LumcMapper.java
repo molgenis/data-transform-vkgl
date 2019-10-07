@@ -1,30 +1,17 @@
 package org.molgenis;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class LumcMapper extends InputDataMapper {
 
-  @Override
-  public void mapClassification(Map body) {
-    switch (body.get("variant_effect").toString()) {
-      case "-":
-        body.put("significance", "b");
-        break;
-      case "-?":
-        body.put("significance", "lb");
-        break;
-      case "+?":
-        body.put("significance", "lp");
-        break;
-      case "+":
-        body.put("significance", "p");
-        break;
-      case "?":
-        body.put("significance", "vus");
-        break;
-      default:
-        body.put("error", "Unknown significance: " + body.get("variant_effect").toString());
-    }
+  public LumcMapper() {
+    classificationTranslation = new HashMap<>();
+    classificationTranslation.put("-", "b");
+    classificationTranslation.put("-?", "lb");
+    classificationTranslation.put("?", "v");
+    classificationTranslation.put("+?", "lp");
+    classificationTranslation.put("+", "p");
   }
 
   @Override
@@ -34,8 +21,10 @@ public class LumcMapper extends InputDataMapper {
 
   @Override
   public void mapData(Map body) {
-    mapClassification(body);
+    String originalClassification = body.get("variant_effect").toString();
+    mapClassification(body, originalClassification);
     body.put("hgvs_normalized_vkgl", body.get("gDNA_normalized"));
     body.remove("gDNA_normalized");
+    body.put("gene", body.get("geneid"));
   }
 }

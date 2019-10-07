@@ -1,30 +1,17 @@
 package org.molgenis;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class RadboudMumcMapper extends InputDataMapper {
 
-  @Override
-  public void mapClassification(Map body) {
-    switch (body.get("classification").toString()) {
-      case "class 1":
-        body.put("significance", "b");
-        break;
-      case "class 2":
-        body.put("significance", "lb");
-        break;
-      case "class 3":
-        body.put("significance", "vus");
-        break;
-      case "class 4":
-        body.put("significance", "lp");
-        break;
-      case "class 5":
-        body.put("significance", "p");
-        break;
-      default:
-        body.put("error", "Unknown significance: " + body.get("classification").toString());
-    }
+  RadboudMumcMapper() {
+    classificationTranslation = new HashMap<>();
+    classificationTranslation.put("class 1", "b");
+    classificationTranslation.put("class 2", "lb");
+    classificationTranslation.put("class 3", "v");
+    classificationTranslation.put("class 4", "lp");
+    classificationTranslation.put("class 5", "p");
   }
 
   @Override
@@ -40,9 +27,12 @@ public class RadboudMumcMapper extends InputDataMapper {
     String chromosome = (String) body.get("chromosome_orig");
     String stop = (String) body.get("stop");
 
-    String hgvs_g = super.hgvsRetriever.getHgvsG(ref, alt, chromosome, getIntFromString(start),
+    String originalClassification = body.get("classification").toString();
+    mapClassification(body, originalClassification);
+
+    String hgvsG = hgvsRetriever.getHgvsG(ref, alt, chromosome, getIntFromString(start),
         getIntFromString(stop));
 
-    body.put("hgvs_normalized_vkgl", hgvs_g);
+    body.put("hgvs_normalized_vkgl", hgvsG);
   }
 }

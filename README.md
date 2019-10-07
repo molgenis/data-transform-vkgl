@@ -16,7 +16,7 @@ curl -H 'Content-Type: application/json' -d '["NM_000088.3:c.589G>T", "NC_000017
 
 ## file processing pipeline
 [Spring Boot](https://spring.io/projects/spring-boot) application that uses
-[Apache Camel](http://camel.apache.org/) to read input file from `src/test/resources`
+[Apache Camel](http://camel.apache.org/) to read input files from `src/test/inbox`
 and annotate the lines with vcf info retrieved from the hgvs annotator.
 
 Results will be stored in results dir once finished.

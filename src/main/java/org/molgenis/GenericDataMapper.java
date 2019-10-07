@@ -17,15 +17,16 @@ public class GenericDataMapper {
   public void mapData(Exchange exchange) {
     Map<String, Object> body = (Map<String, Object>) exchange.getIn().getBody();
     Set<String> headers = body.keySet();
+    String labType = "labType";
     if (headers.contains("gDNA_normalized")) {
       lumcMapper.mapData(body);
-      exchange.getIn().getHeaders().put("labType", "lumc");
+      exchange.getIn().getHeaders().put(labType, "lumc");
     } else if (headers.contains("empty1")) {
       radboudMumcMapper.mapData(body);
-      exchange.getIn().getHeaders().put("labType", "radboud");
+      exchange.getIn().getHeaders().put(labType, "radboud");
     } else {
       alissaMapper.mapData(body);
-      exchange.getIn().getHeaders().put("labType", "alissa");
+      exchange.getIn().getHeaders().put(labType, "alissa");
     }
   }
 }

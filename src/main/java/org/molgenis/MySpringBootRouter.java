@@ -18,12 +18,18 @@ import org.springframework.stereotype.Component;
 @Component
 public class MySpringBootRouter extends RouteBuilder {
 
+  private static final int COMPLETION_TIMEOUT = 10000;
   private static final String VCF_HEADERS = "hgvs_normalized_vkgl\tchrom\tpos\tref\talt\ttype\tsignificance";
-  public static final String ERROR_HEADERS = "hgvs_normalized_vkgl\tcdna_patched\terror";
+  private static final String ERROR_HEADERS = "hgvs_normalized_vkgl\tcdna_patched\terror";
+  private static final String VKGL_HEADERS = "id\tchromosome\tstart\tstop\tref\talt\tgene\tc_dna\thgvs_g\thgvs_c\ttranscript\tprotein\ttype\tlocation\texon\teffect\tclassification\tcomments\tis_legacy";
 
   private static final ReferenceSequenceValidator refValidator = new ReferenceSequenceValidator();
 
   private static final GenericDataMapper genericMapper = new GenericDataMapper();
+
+  private static final AlissaVkglTableMapper alissaTableMapper = new AlissaVkglTableMapper();
+  private static final RadboudMumcVkglTableMapper radboudMumcTableMapper = new RadboudMumcVkglTableMapper();
+  private static final LumcVkglTableMapper lumcTableMapper = new LumcVkglTableMapper();
 
   private Exchange mergeLists(Exchange variantExchange, Exchange responseExchange) {
     List<Map<String, Object>> variants = variantExchange.getIn().getBody(List.class);
@@ -36,6 +42,8 @@ public class MySpringBootRouter extends RouteBuilder {
 
   @Override
   public void configure() {
+    String resultFile = "file:result";
+    String errorFile = "file:result?fileExist=Append";
     from("direct:write-alissa-error")
         .marshal(
             new CsvDataFormat()
@@ -43,7 +51,7 @@ public class MySpringBootRouter extends RouteBuilder {
                 .setHeader(
                     (ALISSA_HEADERS + "\t" + ERROR_HEADERS).split("\t"))
                 .setHeaderDisabled(true))
-        .to("file:result?fileExist=Append");
+        .to(errorFile);
 
     from("direct:write-radboud-error")
         .marshal(
@@ -52,7 +60,7 @@ public class MySpringBootRouter extends RouteBuilder {
                 .setHeader(
                     (RADBOUD_HEADERS + "\t" + ERROR_HEADERS).split("\t"))
                 .setHeaderDisabled(true))
-        .to("file:result?fileExist=Append");
+        .to(errorFile);
 
     from("direct:write-lumc-error")
         .marshal(
@@ -61,33 +69,58 @@ public class MySpringBootRouter extends RouteBuilder {
                 .setHeader(
                     (LUMC_HEADERS + "\t" + ERROR_HEADERS).split("\t"))
                 .setHeaderDisabled(true))
-        .to("file:result?fileExist=Append");
+        .to(errorFile);
 
     from("direct:write-error")
-        .setHeader(FILE_NAME, simple("${header.CamelFileName}.error"))
+        .setHeader(FILE_NAME, simple("vkgl_${file:name.noext}_error.txt"))
         .recipientList(simple("direct:write-${header.labType}-error"));
 
-    from("direct:marshall-alissa-result")
+    from("direct:marshal-alissa-result")
         .marshal(new CsvDataFormat().setDelimiter('\t')
             .setHeader((ALISSA_HEADERS + '\t' + VCF_HEADERS).split("\t")))
-        .to("file:result");
+        .to(resultFile);
 
-    from("direct:marshall-radboud-result")
+    from("direct:marshal-radboud-result")
         .marshal(new CsvDataFormat().setDelimiter('\t')
             .setHeader((RADBOUD_HEADERS + '\t' + VCF_HEADERS).split("\t")))
-        .to("file:result");
+        .to(resultFile);
 
-    from("direct:marshall-lumc-result")
+    from("direct:marshal-lumc-result")
         .marshal(new CsvDataFormat().setDelimiter('\t')
             .setHeader((LUMC_HEADERS + '\t' + VCF_HEADERS).split("\t")))
-        .to("file:result");
+        .to(resultFile);
+
+    from("direct:marshal-vkgl-result")
+        .setHeader(FILE_NAME, simple("vkgl_${file:name.noext}.tsv"))
+        .marshal(new CsvDataFormat().setDelimiter('\t')
+            .setHeader((VKGL_HEADERS).split("\t")))
+        .to(resultFile);
+
+    from("direct:map-alissa-result")
+        .split()
+        .body()
+        .process().body(Map.class, alissaTableMapper::mapLine)
+        .to("direct:marshal-vkgl-result");
+
+    from("direct:map-lumc-result")
+        .split()
+        .body()
+        .process().body(Map.class, lumcTableMapper::mapLine)
+        .to("direct:marshal-vkgl-result");
+
+    from("direct:map-radboud-result")
+        .split()
+        .body()
+        .process().body(Map.class, radboudMumcTableMapper::mapLine)
+        .to("direct:marshal-vkgl-result");
 
     from("direct:write-result")
         .aggregate(header(FILE_NAME))
         .strategy(groupedBody())
-        .completionTimeout(60000)
+        .completionTimeout(COMPLETION_TIMEOUT)
         .to("log:done")
-        .recipientList(simple("direct:marshall-${header.labType}-result"));
+        .recipientList(simple(
+            "direct:marshal-${header.labType}-result,direct:map-${header.labType}-result"));
 
     from("direct:h2v")
         .to("log:httprequest")
