@@ -18,18 +18,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class MySpringBootRouter extends RouteBuilder {
 
-  private static final int COMPLETION_TIMEOUT = 10000;
+  private static final int FILE_COMPLETION_TIMEOUT = 60000;
+  private static final int DEFAULT_TIMEOUT = 1000;
   private static final String VCF_HEADERS = "hgvs_normalized_vkgl\tchrom\tpos\tref\talt\ttype\tsignificance";
   private static final String ERROR_HEADERS = "hgvs_normalized_vkgl\tcdna_patched\terror";
   private static final String VKGL_HEADERS = "id\tchromosome\tstart\tstop\tref\talt\tgene\tc_dna\thgvs_g\thgvs_c\ttranscript\tprotein\ttype\tlocation\texon\teffect\tclassification\tcomments\tis_legacy";
 
-  private static final ReferenceSequenceValidator refValidator = new ReferenceSequenceValidator();
-
-  private static final GenericDataMapper genericMapper = new GenericDataMapper();
-
-  private static final AlissaVkglTableMapper alissaTableMapper = new AlissaVkglTableMapper();
-  private static final RadboudMumcVkglTableMapper radboudMumcTableMapper = new RadboudMumcVkglTableMapper();
-  private static final LumcVkglTableMapper lumcTableMapper = new LumcVkglTableMapper();
 
   private Exchange mergeLists(Exchange variantExchange, Exchange responseExchange) {
     List<Map<String, Object>> variants = variantExchange.getIn().getBody(List.class);
@@ -40,17 +34,28 @@ public class MySpringBootRouter extends RouteBuilder {
     return variantExchange;
   }
 
+  private String[] getSplittedHeaders(String customHeaders, String defaultHeaders) {
+    return (customHeaders + "\t" + defaultHeaders).split("\t");
+  }
+
   @Override
   public void configure() {
     String resultFile = "file:result";
     String appendFile = "file:result?fileExist=Append";
 
+    ReferenceSequenceValidator refValidator = new ReferenceSequenceValidator();
+    GenericDataMapper genericMapper = new GenericDataMapper();
+    AlissaVkglTableMapper alissaTableMapper = new AlissaVkglTableMapper();
+    RadboudMumcVkglTableMapper radboudMumcTableMapper = new RadboudMumcVkglTableMapper();
+    LumcVkglTableMapper lumcTableMapper = new LumcVkglTableMapper();
+    UniquenessChecker uniquenessChecker = new UniquenessChecker();
+    FileCreator fileCreator = new FileCreator();
+
     from("direct:write-alissa-error")
         .marshal(
             new CsvDataFormat()
                 .setDelimiter('\t')
-                .setHeader(
-                    (ALISSA_HEADERS + "\t" + ERROR_HEADERS).split("\t"))
+                .setHeader(getSplittedHeaders(ALISSA_HEADERS, ERROR_HEADERS))
                 .setHeaderDisabled(true))
         .to(appendFile);
 
@@ -58,8 +63,7 @@ public class MySpringBootRouter extends RouteBuilder {
         .marshal(
             new CsvDataFormat()
                 .setDelimiter('\t')
-                .setHeader(
-                    (RADBOUD_HEADERS + "\t" + ERROR_HEADERS).split("\t"))
+                .setHeader(getSplittedHeaders(RADBOUD_HEADERS, ERROR_HEADERS))
                 .setHeaderDisabled(true))
         .to(appendFile);
 
@@ -67,8 +71,7 @@ public class MySpringBootRouter extends RouteBuilder {
         .marshal(
             new CsvDataFormat()
                 .setDelimiter('\t')
-                .setHeader(
-                    (LUMC_HEADERS + "\t" + ERROR_HEADERS).split("\t"))
+                .setHeader(getSplittedHeaders(LUMC_HEADERS, ERROR_HEADERS))
                 .setHeaderDisabled(true))
         .to(appendFile);
 
@@ -78,17 +81,17 @@ public class MySpringBootRouter extends RouteBuilder {
 
     from("direct:marshal-alissa-result")
         .marshal(new CsvDataFormat().setDelimiter('\t')
-            .setHeader((ALISSA_HEADERS + '\t' + VCF_HEADERS).split("\t")))
+            .setHeader(getSplittedHeaders(ALISSA_HEADERS, VCF_HEADERS)))
         .to(resultFile);
 
     from("direct:marshal-radboud-result")
         .marshal(new CsvDataFormat().setDelimiter('\t')
-            .setHeader((RADBOUD_HEADERS + '\t' + VCF_HEADERS).split("\t")))
+            .setHeader(getSplittedHeaders(RADBOUD_HEADERS, VCF_HEADERS)))
         .to(resultFile);
 
     from("direct:marshal-lumc-result")
         .marshal(new CsvDataFormat().setDelimiter('\t')
-            .setHeader((LUMC_HEADERS + '\t' + VCF_HEADERS).split("\t")))
+            .setHeader(getSplittedHeaders(LUMC_HEADERS, VCF_HEADERS)))
         .to(resultFile);
 
     from("direct:marshal-vkgl-result")
@@ -98,27 +101,24 @@ public class MySpringBootRouter extends RouteBuilder {
         .to("file:result?fileName=vkgl_${file:name.noext}.tsv&fileExist=Append");
 
     from("direct:map-alissa-result")
-        .split()
-        .body()
+        .split().body()
         .process().body(Map.class, alissaTableMapper::mapLine)
         .to("direct:marshal-vkgl-result");
 
     from("direct:map-lumc-result")
-        .split()
-        .body()
+        .split().body()
         .process().body(Map.class, lumcTableMapper::mapLine)
         .to("direct:marshal-vkgl-result");
 
     from("direct:map-radboud-result")
-        .split()
-        .body()
+        .split().body()
         .process().body(Map.class, radboudMumcTableMapper::mapLine)
         .to("direct:marshal-vkgl-result");
 
     from("direct:write-result")
         .aggregate(header(FILE_NAME))
         .strategy(groupedBody())
-        .completionTimeout(COMPLETION_TIMEOUT)
+        .completionTimeout(DEFAULT_TIMEOUT)
         .to("log:done")
         .recipientList(simple(
             "direct:marshal-${header.labType}-result,direct:map-${header.labType}-result"));
@@ -138,12 +138,16 @@ public class MySpringBootRouter extends RouteBuilder {
     from("direct:hgvs2vcf")
         .description("Validates the normalized gDNA.")
         .aggregate(header(FILE_NAME), groupedBody())
-        .completionSize(1000)
-        .completionTimeout(1000)
+        .completionSize(DEFAULT_TIMEOUT)
+        .completionTimeout(DEFAULT_TIMEOUT)
         .enrich("direct:h2v", this::mergeLists)
-        .split()
-        .body()
+        .split().body()
         .process().body(Map.class, refValidator::validateOriginalRef)
+        .aggregate(header(FILE_NAME))
+        .strategy(groupedBody())
+        .completionTimeout(FILE_COMPLETION_TIMEOUT)
+        .process(uniquenessChecker::getUniqueVariants)
+        .split().body()
         .choice().when(simple("${body['error']} != null"))
         .to("log:error")
         .to("direct:write-error")
@@ -153,9 +157,8 @@ public class MySpringBootRouter extends RouteBuilder {
         .end();
 
     from("file:src/test/inbox/")
-        .bean(new FileCreator(),
-            "createOutputFile(\"result/vkgl_\"${file:name.noext}\".tsv\"," +
-                VKGL_HEADERS + ")")
+        .bean(fileCreator, "createOutputFile(\"result/vkgl_\"${file:name.noext}\".tsv\"," +
+            VKGL_HEADERS + ")")
         .choice().when(simple("${header.CamelFileName} contains 'radboud'"))
         .unmarshal(new CsvDataFormat().setDelimiter('\t').setUseMaps(true).setHeader(
             RADBOUD_HEADERS.split("\t"))).otherwise()
