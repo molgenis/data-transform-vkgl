@@ -95,7 +95,7 @@ public class MySpringBootRouter extends RouteBuilder {
         .marshal(new CsvDataFormat().setDelimiter('\t')
             .setHeader((VKGL_HEADERS).split("\t"))
             .setHeaderDisabled(true))
-        .to("file:result?fileName=vkgl_test.tsv&fileExist=Append");
+        .to("file:result?fileName=vkgl_${file:name.noext}.tsv&fileExist=Append");
 
     from("direct:map-alissa-result")
         .split()
@@ -110,7 +110,6 @@ public class MySpringBootRouter extends RouteBuilder {
         .to("direct:marshal-vkgl-result");
 
     from("direct:map-radboud-result")
-        .setHeader(FILE_NAME, simple("vkgl_${file:name.noext}.tsv"))
         .split()
         .body()
         .process().body(Map.class, radboudMumcTableMapper::mapLine)
