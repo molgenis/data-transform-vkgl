@@ -11,7 +11,7 @@ public interface VkglTableMapper {
 
   default ArrayList<String> getCorrectedRefAndAlt(String ref, String alt, String type) {
     ArrayList<String> corrected = new ArrayList<>();
-    if (type.equals("sub")) {
+    if (type.equals("sub") && ref.length() == 2 && alt.length() == 2) {
       corrected.add(ref.substring(1));
       corrected.add(alt.substring(1));
     } else {
