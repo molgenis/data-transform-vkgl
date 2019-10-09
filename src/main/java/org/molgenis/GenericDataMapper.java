@@ -14,19 +14,28 @@ class GenericDataMapper {
   static final String RADBOUD_HEADERS = radboudMumcMapper.getHeader();
   static final String ALISSA_HEADERS = alissaMapper.getHeader();
 
+  static String getType(Set<String> headers) {
+    if (headers.contains("gDNA_normalized")) {
+      return "lumc";
+    } else if (headers.contains("empty1")) {
+      return "radboud";
+    } else {
+      return "alissa";
+    }
+  }
+
   void mapData(Exchange exchange) {
     Map<String, Object> body = (Map<String, Object>) exchange.getIn().getBody();
     Set<String> headers = body.keySet();
-    String labType = "labType";
-    if (headers.contains("gDNA_normalized")) {
+    String labType = getType(headers);
+    exchange.getIn().getHeaders().put("labType", labType);
+
+    if (labType.equals("lumc")) {
       lumcMapper.mapData(body);
-      exchange.getIn().getHeaders().put(labType, "lumc");
-    } else if (headers.contains("empty1")) {
+    } else if (labType.equals("radboud")) {
       radboudMumcMapper.mapData(body);
-      exchange.getIn().getHeaders().put(labType, "radboud");
     } else {
       alissaMapper.mapData(body);
-      exchange.getIn().getHeaders().put(labType, "alissa");
     }
   }
 }
