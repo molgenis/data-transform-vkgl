@@ -11,9 +11,11 @@ public class LumcVkglTableMapper implements VkglTableMapper {
   @Override
   public void mapLine(Map body) {
     mapGenericPart(body);
-    String[] transcriptAndCdna = getTranscriptAndCdna((String) body.get("cDNA"));
-    body.put("c_dna", transcriptAndCdna[1]);
-    body.put("transcript", transcriptAndCdna[0]);
+    if (body.containsKey("cDNA")) {
+      String[] transcriptAndCdna = getTranscriptAndCdna((String) body.get("cDNA"));
+      body.put("c_dna", transcriptAndCdna[1]);
+      body.put("transcript", transcriptAndCdna[0]);
+    }
     addIfNotNull(body, "Protein", "protein");
   }
 }
