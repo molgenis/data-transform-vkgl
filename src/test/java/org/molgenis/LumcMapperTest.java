@@ -1,8 +1,10 @@
 package org.molgenis;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class LumcMapperTest {
@@ -22,5 +24,17 @@ class LumcMapperTest {
     String original = "onzin";
     lumc.mapClassification(body, original);
     assertEquals("Unknown significance: onzin", body.get("error"));
+  }
+
+  @Test
+  void mapDataTest() {
+    Map<String, Object> body = new HashMap<>();
+    body.put("variant_effect", "-");
+    body.put("gDNA_normalized", "NC_000023.10:g.124A>G");
+
+    lumc.mapData(body);
+
+    assertFalse(body.containsKey("gDNA_normalized"));
+    assertEquals("NC_000023.10:g.124A>G", body.get("hgvs_normalized_vkgl"));
   }
 }

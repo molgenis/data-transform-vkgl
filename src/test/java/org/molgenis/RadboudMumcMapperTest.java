@@ -3,6 +3,7 @@ package org.molgenis;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class RadboudMumcMapperTest {
@@ -22,5 +23,20 @@ class RadboudMumcMapperTest {
     String original = "onzin";
     radboudMumc.mapClassification(body, original);
     assertEquals("Unknown significance: onzin", body.get("error"));
+  }
+
+  @Test
+  void mapDataTest() {
+    Map<String, Object> body = new HashMap<>();
+    body.put("classification", "b");
+    body.put("start", "124");
+    body.put("ref_orig", "A");
+    body.put("alt_orig", "G");
+    body.put("chromosome_orig", "chrX");
+    body.put("stop", "124");
+
+    radboudMumc.mapData(body);
+
+    assertEquals("NC_000023.10:g.124A>G", body.get("hgvs_normalized_vkgl"));
   }
 }
