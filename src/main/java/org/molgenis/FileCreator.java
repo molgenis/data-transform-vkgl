@@ -7,8 +7,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class FileCreator {
+
+  private static Log log = LogFactory.getLog(FileCreator.class);
 
   private static void createFile(String fileName, String header) throws IOException {
     FileWriter outputFile = new FileWriter(fileName);
@@ -23,7 +27,7 @@ public class FileCreator {
       Files.deleteIfExists(path);
       createFile(output, headers);
     } catch (IOException e) {
-      e.printStackTrace();
+      log.error(e);
     }
   }
 }
