@@ -38,9 +38,9 @@ public abstract class VkglTableMapper {
 
   public abstract void mapLine(Map body);
 
-  void mapGenericPart(Map body) {
-    String ref_orig = (String) body.get("ref");
-    String alt_orig = (String) body.get("alt");
+  void mapGenericPart(Map<String, Object> body) {
+    String refOrig = (String) body.get("ref");
+    String altOrig = (String) body.get("alt");
 
     String type = (String) body.get("type");
     String chromosome = (String) body.get("chrom");
@@ -50,7 +50,7 @@ public abstract class VkglTableMapper {
     body.put("chromosome", chromosome);
     body.put("start", start);
 
-    ArrayList<String> refAndAlt = getCorrectedRefAndAlt(ref_orig, alt_orig, type);
+    ArrayList<String> refAndAlt = getCorrectedRefAndAlt(refOrig, altOrig, type);
     String ref = refAndAlt.get(0);
     body.put("ref", ref);
     String alt = refAndAlt.get(1);

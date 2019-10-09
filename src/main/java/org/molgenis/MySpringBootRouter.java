@@ -42,6 +42,7 @@ public class MySpringBootRouter extends RouteBuilder {
   public void configure() {
     String resultFile = "file:result";
     String appendFile = "file:result?fileExist=Append";
+    String marshalVkglResults = "direct:marshal-vkgl-result";
 
     ReferenceSequenceValidator refValidator = new ReferenceSequenceValidator();
     GenericDataMapper genericMapper = new GenericDataMapper();
@@ -49,7 +50,6 @@ public class MySpringBootRouter extends RouteBuilder {
     RadboudMumcVkglTableMapper radboudMumcTableMapper = new RadboudMumcVkglTableMapper();
     LumcVkglTableMapper lumcTableMapper = new LumcVkglTableMapper();
     UniquenessChecker uniquenessChecker = new UniquenessChecker();
-    FileCreator fileCreator = new FileCreator();
 
     from("direct:write-alissa-error")
         .marshal(
@@ -103,17 +103,17 @@ public class MySpringBootRouter extends RouteBuilder {
     from("direct:map-alissa-result")
         .split().body()
         .process().body(Map.class, alissaTableMapper::mapLine)
-        .to("direct:marshal-vkgl-result");
+        .to(marshalVkglResults);
 
     from("direct:map-lumc-result")
         .split().body()
         .process().body(Map.class, lumcTableMapper::mapLine)
-        .to("direct:marshal-vkgl-result");
+        .to(marshalVkglResults);
 
     from("direct:map-radboud-result")
         .split().body()
         .process().body(Map.class, radboudMumcTableMapper::mapLine)
-        .to("direct:marshal-vkgl-result");
+        .to(marshalVkglResults);
 
     from("direct:write-result")
         .aggregate(header(FILE_NAME))
@@ -157,7 +157,7 @@ public class MySpringBootRouter extends RouteBuilder {
         .end();
 
     from("file:src/test/inbox/")
-        .bean(fileCreator, "createOutputFile(\"result/vkgl_\"${file:name.noext}\".tsv\"," +
+        .bean(FileCreator.class, "createOutputFile(\"result/vkgl_\"${file:name.noext}\".tsv\"," +
             VKGL_HEADERS + ")")
         .choice().when(simple("${header.CamelFileName} contains 'radboud'"))
         .unmarshal(new CsvDataFormat().setDelimiter('\t').setUseMaps(true).setHeader(

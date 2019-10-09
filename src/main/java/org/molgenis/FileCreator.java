@@ -14,6 +14,10 @@ public class FileCreator {
 
   private static Log log = LogFactory.getLog(FileCreator.class);
 
+  private FileCreator() {
+    throw new IllegalStateException("Utility class should not be instantiated");
+  }
+
   private static void createFile(String fileName, String header) throws IOException {
     FileWriter outputFile = new FileWriter(fileName);
     try (CSVPrinter printer = new CSVPrinter(outputFile, CSVFormat.TDF.withQuote(null))) {

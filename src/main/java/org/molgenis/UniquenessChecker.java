@@ -10,20 +10,22 @@ class UniquenessChecker {
   private static HashMap<String, HashMap> uniqueVariants = new HashMap<>();
 
   List<HashMap> getUniqueVariantsList(List<HashMap> body) {
+    String errorKey = "error";
+    String hgvsKey = "hgvs_normalized_vkgl";
     List<HashMap> listOfUniqueVariants = new ArrayList<>();
     for (HashMap variant : body) {
-      if (!variant.containsKey("error")) {
+      if (!variant.containsKey(errorKey)) {
         String id = variant.get("chrom") + Integer.toString((Integer) variant.get("pos")) +
             variant.get("ref") + variant.get("alt") + variant.get("gene");
         if (uniqueVariants.containsKey(id)) {
           HashMap uniqueVariant = uniqueVariants.get(id);
-          if (uniqueVariant.containsKey("error")) {
-            String error = (String) uniqueVariant.get("error");
-            uniqueVariant.put("error", error + "," + variant.get("hgvs_normalized_vkgl"));
+          if (uniqueVariant.containsKey(errorKey)) {
+            String error = (String) uniqueVariant.get(errorKey);
+            uniqueVariant.put(errorKey, error + "," + variant.get(hgvsKey));
           } else {
-            uniqueVariant.put("error",
-                "Variant duplicated: " + uniqueVariant.get("hgvs_normalized_vkgl") + "," + variant
-                    .get("hgvs_normalized_vkgl"));
+            uniqueVariant.put(errorKey,
+                "Variant duplicated: " + uniqueVariant.get(hgvsKey) + "," + variant
+                    .get(hgvsKey));
           }
         } else {
           uniqueVariants.put(id, variant);
