@@ -4,14 +4,7 @@ import java.util.Map;
 
 public class LumcVkglTableMapper extends VkglTableMapper {
 
-  @Override
-  void addIfNotNull(Map body, String labKey, String targetKey) {
-    if (body.containsKey(labKey)) {
-      body.put(targetKey, body.get(labKey));
-    }
-  }
-
-  private String[] getTranscriptAndCdna(String cDna) {
+  String[] getTranscriptAndCdna(String cDna) {
     return cDna.split(":");
   }
 

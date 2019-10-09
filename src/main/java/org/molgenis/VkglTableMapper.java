@@ -5,11 +5,11 @@ import java.util.Map;
 
 public abstract class VkglTableMapper {
 
-  private String getId(String ref, String alt, String chr, String pos, String gene) {
+  String getId(String ref, String alt, String chr, String pos, String gene) {
     return chr + "_" + pos + "_" + ref + "_" + alt + "_" + gene;
   }
 
-  private ArrayList<String> getCorrectedRefAndAlt(String ref, String alt, String type) {
+  ArrayList<String> getCorrectedRefAndAlt(String ref, String alt, String type) {
     ArrayList<String> corrected = new ArrayList<>();
     if (type.equals("sub")) {
       corrected.add(ref.substring(1));
@@ -21,7 +21,7 @@ public abstract class VkglTableMapper {
     return corrected;
   }
 
-  private String getHgvsType(String hgvs) {
+  String getHgvsType(String hgvs) {
     if (hgvs.startsWith("NC")) {
       return "hgvs_g";
     } else {
@@ -29,12 +29,16 @@ public abstract class VkglTableMapper {
     }
   }
 
-  private String getStopPosition(String startPosition, String ref) {
+  String getStopPosition(String startPosition, String ref) {
     int stop = Integer.parseInt(startPosition) + ref.length() - 1;
     return Integer.toString(stop);
   }
 
-  abstract void addIfNotNull(Map body, String labKey, String targetKey);
+  void addIfNotNull(Map body, String labKey, String targetKey) {
+    if (body.containsKey(labKey)) {
+      body.put(targetKey, body.get(labKey));
+    }
+  }
 
   public abstract void mapLine(Map body);
 

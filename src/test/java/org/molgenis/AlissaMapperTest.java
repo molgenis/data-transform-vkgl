@@ -34,7 +34,7 @@ class AlissaMapperTest {
     body.put("ref", "A");
     body.put("alt", "G");
     body.put("chromosome", "X");
-    body.put("transcript", "NM:1234.5");
+    body.put("transcript", "NM_1234.5");
     body.put("c_nomen", "c.1234A>G");
     body.put("p_nomen", "NULL");
     body.put("stop", "124");
