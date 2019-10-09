@@ -3,13 +3,13 @@ package org.molgenis;
 import java.util.ArrayList;
 import java.util.Map;
 
-public abstract class VkglTableMapper {
+public interface VkglTableMapper {
 
-  String getId(String ref, String alt, String chr, String pos, String gene) {
+  default String getId(String ref, String alt, String chr, String pos, String gene) {
     return chr + "_" + pos + "_" + ref + "_" + alt + "_" + gene;
   }
 
-  ArrayList<String> getCorrectedRefAndAlt(String ref, String alt, String type) {
+  default ArrayList<String> getCorrectedRefAndAlt(String ref, String alt, String type) {
     ArrayList<String> corrected = new ArrayList<>();
     if (type.equals("sub")) {
       corrected.add(ref.substring(1));
@@ -21,7 +21,7 @@ public abstract class VkglTableMapper {
     return corrected;
   }
 
-  String getHgvsType(String hgvs) {
+  default String getHgvsType(String hgvs) {
     if (hgvs.startsWith("NC")) {
       return "hgvs_g";
     } else {
@@ -29,20 +29,20 @@ public abstract class VkglTableMapper {
     }
   }
 
-  String getStopPosition(String startPosition, String ref) {
+  default String getStopPosition(String startPosition, String ref) {
     int stop = Integer.parseInt(startPosition) + ref.length() - 1;
     return Integer.toString(stop);
   }
 
-  void addIfNotNull(Map body, String labKey, String targetKey) {
+  default void addIfNotNull(Map body, String labKey, String targetKey) {
     if (body.containsKey(labKey)) {
       body.put(targetKey, body.get(labKey));
     }
   }
 
-  public abstract void mapLine(Map body);
+  void mapLine(Map body);
 
-  void mapGenericPart(Map<String, Object> body) {
+  default void mapGenericPart(Map<String, Object> body) {
     String refOrig = (String) body.get("ref");
     String altOrig = (String) body.get("alt");
 

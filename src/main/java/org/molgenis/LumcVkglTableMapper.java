@@ -2,7 +2,7 @@ package org.molgenis;
 
 import java.util.Map;
 
-public class LumcVkglTableMapper extends VkglTableMapper {
+public class LumcVkglTableMapper implements VkglTableMapper {
 
   String[] getTranscriptAndCdna(String cDna) {
     return cDna.split(":");

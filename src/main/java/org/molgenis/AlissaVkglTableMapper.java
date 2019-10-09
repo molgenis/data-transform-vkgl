@@ -2,10 +2,10 @@ package org.molgenis;
 
 import java.util.Map;
 
-public class AlissaVkglTableMapper extends VkglTableMapper {
+public class AlissaVkglTableMapper implements VkglTableMapper {
 
   @Override
-  void addIfNotNull(Map body, String labKey, String targetKey) {
+  public void addIfNotNull(Map body, String labKey, String targetKey) {
     if (body.containsKey(labKey) && !body.get(labKey).equals("NULL")) {
       body.put(targetKey, body.get(labKey));
     }
