@@ -5,13 +5,13 @@ import java.util.HashMap;
 import java.util.List;
 import org.apache.camel.Exchange;
 
-public class UniquenessChecker {
+class UniquenessChecker {
 
   private static HashMap<String, HashMap> uniqueVariants = new HashMap<>();
 
-  public void getUniqueVariants(Exchange exchange) {
-    List<HashMap> newExchange = new ArrayList<>();
-    for (HashMap variant : (List<HashMap>) exchange.getIn().getBody(List.class)) {
+  List<HashMap> getUniqueVariantsList(List<HashMap> body) {
+    List<HashMap> listOfUniqueVariants = new ArrayList<>();
+    for (HashMap variant : body) {
       if (!variant.containsKey("error")) {
         String id = variant.get("chrom") + Integer.toString((Integer) variant.get("pos")) +
             variant.get("ref") + variant.get("alt") + variant.get("gene");
@@ -29,10 +29,16 @@ public class UniquenessChecker {
           uniqueVariants.put(id, variant);
         }
       } else {
-        newExchange.add(variant);
+        listOfUniqueVariants.add(variant);
       }
     }
-    newExchange.addAll(uniqueVariants.values());
-    exchange.getIn().setBody(newExchange);
+    listOfUniqueVariants.addAll(uniqueVariants.values());
+    return listOfUniqueVariants;
+  }
+
+  void getUniqueVariants(Exchange exchange) {
+    List<HashMap> body = (List<HashMap>) exchange.getIn().getBody(List.class);
+    List<HashMap> listOfUniqueVariants = getUniqueVariantsList(body);
+    exchange.getIn().setBody(listOfUniqueVariants);
   }
 }
