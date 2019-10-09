@@ -12,9 +12,9 @@ public class FileCreator {
 
   private static void createFile(String fileName, String header) throws IOException {
     FileWriter outputFile = new FileWriter(fileName);
-    CSVPrinter printer = new CSVPrinter(outputFile, CSVFormat.TDF.withQuote(null));
-    printer.printRecord(header);
-    printer.close();
+    try (CSVPrinter printer = new CSVPrinter(outputFile, CSVFormat.TDF.withQuote(null))) {
+      printer.printRecord(header);
+    }
   }
 
   public static void createOutputFile(String output, String headers) {
