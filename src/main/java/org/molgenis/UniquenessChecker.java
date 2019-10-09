@@ -7,7 +7,7 @@ import org.apache.camel.Exchange;
 
 class UniquenessChecker {
 
-  private static HashMap<String, HashMap> uniqueVariants = new HashMap<>();
+  private HashMap<String, HashMap> uniqueVariants = new HashMap<>();
 
   List<HashMap> getUniqueVariantsList(List<HashMap> body) {
     String errorKey = "error";
