@@ -134,6 +134,26 @@ public class MySpringBootRouter extends RouteBuilder {
         .recipientList(simple(
             "direct:marshal-${header.labType}-result,direct:map-${header.labType}-result"));
 
+    from("direct:check_unique")
+        .aggregate(header(FILE_NAME))
+        .strategy(groupedBody())
+        .completionTimeout(FILE_COMPLETION_TIMEOUT)
+        .process(uniquenessChecker::getUniqueVariants)
+        .split().body()
+        .choice()
+        .when(simple("${body['error']} != null"))
+        .to("log:error")
+        .to("direct:write-error")
+        .otherwise()
+        .to("direct:write-result")
+        .end()
+        .end();
+
+    from("direct:validate")
+        .process()
+        .body(Map.class, refValidator::validateOriginalRef)
+        .to("direct:check_unique");
+
     from("direct:h2v")
         .to("log:httprequest")
         .transform()
@@ -153,19 +173,7 @@ public class MySpringBootRouter extends RouteBuilder {
         .completionTimeout(DEFAULT_TIMEOUT)
         .enrich("direct:h2v", this::mergeLists)
         .split().body()
-        .process().body(Map.class, refValidator::validateOriginalRef)
-        .aggregate(header(FILE_NAME))
-        .strategy(groupedBody())
-        .completionTimeout(FILE_COMPLETION_TIMEOUT)
-        .process(uniquenessChecker::getUniqueVariants)
-        .split().body()
-        .choice().when(simple("${body['error']} != null"))
-        .to("log:error")
-        .to("direct:write-error")
-        .otherwise()
-        .to("direct:write-result")
-        .end()
-        .end();
+        .to("direct:validate");
 
     from("file:src/test/inbox/")
         .bean(FileCreator.class, "createOutputFile(\"result/vkgl_\"${file:name.noext}\".tsv\"," +
