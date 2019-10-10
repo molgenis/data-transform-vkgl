@@ -3,7 +3,7 @@ package org.molgenis;
 import java.util.HashMap;
 import java.util.Map;
 
-public class HgvsService {
+class HgvsService {
 
   private static Map<String, String> chromosomeTranscripts;
 
@@ -53,7 +53,7 @@ public class HgvsService {
   }
 
   @SuppressWarnings("squid:CommentedOutCodeLine")
-  public String getHgvs(String nmTranscript, String cDNA, String ref, String alt, int start,
+  String getHgvs(String nmTranscript, String cDNA, String ref, String alt, int start,
       int stop, String chromosome) {
     String hgvs;
     // if (ref and alt not empty) or (transcript+cDNA would be invalid)
@@ -66,7 +66,7 @@ public class HgvsService {
     return hgvs;
   }
 
-  public String getHgvsG(String ref, String alt, String chromosome, int start, int stop) {
+  String getHgvsG(String ref, String alt, String chromosome, int start, int stop) {
     String transcript = getTranscriptFromChromosome(chromosome);
     if (ref.length() == 1 && alt.length() == 1 && !isEmptyValue(ref) && !isEmptyValue(alt)) {
       return getHgvsGForSnp(transcript, Integer.toString(start), ref, alt);

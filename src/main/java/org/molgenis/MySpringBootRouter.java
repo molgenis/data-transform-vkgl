@@ -41,7 +41,7 @@ public class MySpringBootRouter extends RouteBuilder {
   @Override
   public void configure() {
     String resultFile = "file:result";
-    String appendFile = "file:result?fileExist=Append";
+    String appendErrorFile = "file:result?fileName=vkgl_${file:name.noext}_error.txt&fileExist=Append";
     String marshalVkglResults = "direct:marshal-vkgl-result";
 
     ReferenceSequenceValidator refValidator = new ReferenceSequenceValidator();
@@ -57,7 +57,7 @@ public class MySpringBootRouter extends RouteBuilder {
                 .setDelimiter('\t')
                 .setHeader(getSplittedHeaders(ALISSA_HEADERS, ERROR_HEADERS))
                 .setHeaderDisabled(true))
-        .to(appendFile);
+        .to(appendErrorFile);
 
     from("direct:write-radboud-error")
         .marshal(
@@ -65,7 +65,7 @@ public class MySpringBootRouter extends RouteBuilder {
                 .setDelimiter('\t')
                 .setHeader(getSplittedHeaders(RADBOUD_HEADERS, ERROR_HEADERS))
                 .setHeaderDisabled(true))
-        .to(appendFile);
+        .to(appendErrorFile);
 
     from("direct:write-lumc-error")
         .marshal(
@@ -73,10 +73,9 @@ public class MySpringBootRouter extends RouteBuilder {
                 .setDelimiter('\t')
                 .setHeader(getSplittedHeaders(LUMC_HEADERS, ERROR_HEADERS))
                 .setHeaderDisabled(true))
-        .to(appendFile);
+        .to(appendErrorFile);
 
     from("direct:write-error")
-        .setHeader(FILE_NAME, simple("vkgl_${file:name.noext}_error.txt"))
         .recipientList(simple("direct:write-${header.labType}-error"));
 
     from("direct:marshal-alissa-result")
