@@ -59,10 +59,9 @@ public class MySpringBootRouter extends RouteBuilder {
   @Override
   public void configure() {
     String resultFile = "file:result";
-    String appendErrorFile = "file:result?fileName=vkgl_${file:name.noext}_error.txt&fileExist=Append";
-    String marshalVkglResults = "direct:marshal-vkgl-result";
 
-
+    from("direct:append-error")
+        .to("file:result?fileName=vkgl_${file:name.noext}_error.txt&fileExist=Append");
 
     from("direct:write-alissa-error")
         .marshal(
@@ -70,7 +69,7 @@ public class MySpringBootRouter extends RouteBuilder {
                 .setDelimiter('\t')
                 .setHeader(getSplittedHeaders(ALISSA_HEADERS, ERROR_HEADERS))
                 .setHeaderDisabled(true))
-        .to(appendErrorFile);
+        .to("direct:append-error");
 
     from("direct:write-radboud-error")
         .marshal(
@@ -78,7 +77,7 @@ public class MySpringBootRouter extends RouteBuilder {
                 .setDelimiter('\t')
                 .setHeader(getSplittedHeaders(RADBOUD_HEADERS, ERROR_HEADERS))
                 .setHeaderDisabled(true))
-        .to(appendErrorFile);
+        .to("direct:append-error");
 
     from("direct:write-lumc-error")
         .marshal(
@@ -86,7 +85,7 @@ public class MySpringBootRouter extends RouteBuilder {
                 .setDelimiter('\t')
                 .setHeader(getSplittedHeaders(LUMC_HEADERS, ERROR_HEADERS))
                 .setHeaderDisabled(true))
-        .to(appendErrorFile);
+        .to("direct:append-error");
 
     from("direct:write-error")
         .recipientList(simple("direct:write-${header.labType}-error"));
@@ -115,17 +114,17 @@ public class MySpringBootRouter extends RouteBuilder {
     from("direct:map-alissa-result")
         .split().body()
         .process().body(Map.class, alissaTableMapper::mapLine)
-        .to(marshalVkglResults);
+        .to("direct:marshal-vkgl-result");
 
     from("direct:map-lumc-result")
         .split().body()
         .process().body(Map.class, lumcTableMapper::mapLine)
-        .to(marshalVkglResults);
+        .to("direct:marshal-vkgl-result");
 
     from("direct:map-radboud-result")
         .split().body()
         .process().body(Map.class, radboudMumcTableMapper::mapLine)
-        .to(marshalVkglResults);
+        .to("direct:marshal-vkgl-result");
 
     from("direct:write-result")
         .aggregate(header(FILE_NAME))
