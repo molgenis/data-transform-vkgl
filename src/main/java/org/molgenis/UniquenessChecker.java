@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import org.apache.camel.Exchange;
+import org.springframework.stereotype.Component;
 
+@Component
 class UniquenessChecker {
 
   List<HashMap> getUniqueVariantsList(List<HashMap> body) {

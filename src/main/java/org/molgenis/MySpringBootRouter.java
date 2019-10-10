@@ -4,9 +4,9 @@ import static org.apache.camel.Exchange.FILE_NAME;
 import static org.apache.camel.Exchange.HTTP_METHOD;
 import static org.apache.camel.model.dataformat.JsonLibrary.Jackson;
 import static org.apache.camel.util.toolbox.AggregationStrategies.groupedBody;
-import static org.molgenis.GenericDataMapper.ALISSA_HEADERS;
-import static org.molgenis.GenericDataMapper.LUMC_HEADERS;
-import static org.molgenis.GenericDataMapper.RADBOUD_HEADERS;
+import static org.molgenis.AlissaMapper.ALISSA_HEADERS;
+import static org.molgenis.LumcMapper.LUMC_HEADERS;
+import static org.molgenis.RadboudMumcMapper.RADBOUD_HEADERS;
 
 import java.util.List;
 import java.util.Map;
@@ -24,6 +24,24 @@ public class MySpringBootRouter extends RouteBuilder {
   private static final String ERROR_HEADERS = "hgvs_normalized_vkgl\tcdna_patched\terror";
   private static final String VKGL_HEADERS = "id\tchromosome\tstart\tstop\tref\talt\tgene\tc_dna\thgvs_g\thgvs_c\ttranscript\tprotein\ttype\tlocation\texon\teffect\tclassification\tcomments\tis_legacy";
 
+  private final ReferenceSequenceValidator refValidator;
+  private final GenericDataMapper genericMapper;
+  private final AlissaVkglTableMapper alissaTableMapper;
+  private final RadboudMumcVkglTableMapper radboudMumcTableMapper;
+  private final LumcVkglTableMapper lumcTableMapper;
+  private final UniquenessChecker uniquenessChecker;
+
+  public MySpringBootRouter(ReferenceSequenceValidator refValidator,
+      GenericDataMapper genericMapper, AlissaVkglTableMapper alissaTableMapper,
+      RadboudMumcVkglTableMapper radboudMumcTableMapper,
+      LumcVkglTableMapper lumcTableMapper, UniquenessChecker uniquenessChecker) {
+    this.refValidator = refValidator;
+    this.genericMapper = genericMapper;
+    this.alissaTableMapper = alissaTableMapper;
+    this.radboudMumcTableMapper = radboudMumcTableMapper;
+    this.lumcTableMapper = lumcTableMapper;
+    this.uniquenessChecker = uniquenessChecker;
+  }
 
   private Exchange mergeLists(Exchange variantExchange, Exchange responseExchange) {
     List<Map<String, Object>> variants = variantExchange.getIn().getBody(List.class);
@@ -44,12 +62,7 @@ public class MySpringBootRouter extends RouteBuilder {
     String appendErrorFile = "file:result?fileName=vkgl_${file:name.noext}_error.txt&fileExist=Append";
     String marshalVkglResults = "direct:marshal-vkgl-result";
 
-    ReferenceSequenceValidator refValidator = new ReferenceSequenceValidator();
-    GenericDataMapper genericMapper = new GenericDataMapper();
-    AlissaVkglTableMapper alissaTableMapper = new AlissaVkglTableMapper();
-    RadboudMumcVkglTableMapper radboudMumcTableMapper = new RadboudMumcVkglTableMapper();
-    LumcVkglTableMapper lumcTableMapper = new LumcVkglTableMapper();
-    UniquenessChecker uniquenessChecker = new UniquenessChecker();
+
 
     from("direct:write-alissa-error")
         .marshal(

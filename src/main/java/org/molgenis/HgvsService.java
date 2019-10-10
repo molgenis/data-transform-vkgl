@@ -2,7 +2,9 @@ package org.molgenis;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
+@Component
 class HgvsService {
 
   private static Map<String, String> chromosomeTranscripts;

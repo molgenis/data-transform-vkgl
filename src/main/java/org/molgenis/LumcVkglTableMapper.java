@@ -1,7 +1,9 @@
 package org.molgenis;
 
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
+@Component
 public class LumcVkglTableMapper implements VkglTableMapper {
 
   String[] getTranscriptAndCdna(String cDna) {

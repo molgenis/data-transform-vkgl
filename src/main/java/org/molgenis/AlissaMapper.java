@@ -2,21 +2,21 @@ package org.molgenis;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
+@Component
 public class AlissaMapper extends InputDataMapper {
 
-  AlissaMapper() {
+  public static final String ALISSA_HEADERS = "timestamp\tid\tchromosome\tstart\tstop\tref_orig\talt_orig\tgene\ttranscript\tc_nomen\tp_nomen\texon\tvariant_type\tlocation\teffect\tclassification\tlast_updated_by\tlast_updated_on";
+
+  AlissaMapper(HgvsService hgvsService) {
+    super(hgvsService);
     classificationTranslation = new HashMap<>();
     classificationTranslation.put("BENIGN", "b");
     classificationTranslation.put("LIKELY_BENIGN", "lb");
     classificationTranslation.put("VOUS", "v");
     classificationTranslation.put("LIKELY_PATHOGENIC", "lp");
     classificationTranslation.put("PATHOGENIC", "p");
-  }
-
-  @Override
-  public String getHeader() {
-    return "timestamp\tid\tchromosome\tstart\tstop\tref_orig\talt_orig\tgene\ttranscript\tc_nomen\tp_nomen\texon\tvariant_type\tlocation\teffect\tclassification\tlast_updated_by\tlast_updated_on";
   }
 
   @Override
@@ -42,8 +42,8 @@ public class AlissaMapper extends InputDataMapper {
     }
     body.put("p_nomen", protein);
     String stop = (String) body.get("stop");
-    String hgvs = hgvsRetriever
-        .getHgvs(transcript, cDNA, ref, alt, super.getIntFromString(start), getIntFromString(stop),
+    String hgvs = hgvsService
+        .getHgvs(transcript, cDNA, ref, alt, getIntFromString(start), getIntFromString(stop),
             "chr" + chromosome);
     body.put("hgvs_normalized_vkgl", hgvs);
   }

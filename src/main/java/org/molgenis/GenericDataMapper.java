@@ -3,16 +3,20 @@ package org.molgenis;
 import java.util.Map;
 import java.util.Set;
 import org.apache.camel.Exchange;
+import org.springframework.stereotype.Component;
 
+@Component
 class GenericDataMapper {
+  private final AlissaMapper alissaMapper;
+  private final LumcMapper lumcMapper;
+  private final RadboudMumcMapper radboudMumcMapper;
 
-  private static final AlissaMapper alissaMapper = new AlissaMapper();
-  private static final LumcMapper lumcMapper = new LumcMapper();
-  private static final RadboudMumcMapper radboudMumcMapper = new RadboudMumcMapper();
-
-  static final String LUMC_HEADERS = lumcMapper.getHeader();
-  static final String RADBOUD_HEADERS = radboudMumcMapper.getHeader();
-  static final String ALISSA_HEADERS = alissaMapper.getHeader();
+  public GenericDataMapper(AlissaMapper alissaMapper, LumcMapper lumcMapper,
+      RadboudMumcMapper radboudMumcMapper) {
+    this.alissaMapper = alissaMapper;
+    this.lumcMapper = lumcMapper;
+    this.radboudMumcMapper = radboudMumcMapper;
+  }
 
   static String getType(Set<String> headers) {
     if (headers.contains("gDNA_normalized")) {

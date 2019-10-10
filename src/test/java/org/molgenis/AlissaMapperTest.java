@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 class AlissaMapperTest {
 
-  private AlissaMapper alissa = new AlissaMapper();
+  private AlissaMapper alissa = new AlissaMapper(new HgvsService());
   private HashMap<String, String> body = new HashMap<>();
 
   @Test

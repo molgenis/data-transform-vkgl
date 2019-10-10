@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 class LumcMapperTest {
 
-  private LumcMapper lumc = new LumcMapper();
+  private LumcMapper lumc = new LumcMapper(new HgvsService());
   private HashMap<String, String> body = new HashMap<>();
 
   @Test

@@ -1,7 +1,9 @@
 package org.molgenis;
 
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ReferenceSequenceValidator {
 
   static boolean matchesOriginalRef(String refOrig, String ref, int startOrig, int start) {

@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 class RadboudMumcMapperTest {
 
-  private RadboudMumcMapper radboudMumc = new RadboudMumcMapper();
+  private RadboudMumcMapper radboudMumc = new RadboudMumcMapper(new HgvsService());
   private HashMap<String, String> body = new HashMap<>();
 
   @Test

@@ -2,21 +2,21 @@ package org.molgenis;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
+@Component
 public class LumcMapper extends InputDataMapper {
 
-  LumcMapper() {
+  static final String LUMC_HEADERS = "refseq_build\tchromosome\thgvs_normalized\tvariant_effect\tgeneid\tcDNA\tProtein";
+
+  LumcMapper(HgvsService hgvsService) {
+    super(hgvsService);
     classificationTranslation = new HashMap<>();
     classificationTranslation.put("-", "b");
     classificationTranslation.put("-?", "lb");
     classificationTranslation.put("?", "v");
     classificationTranslation.put("+?", "lp");
     classificationTranslation.put("+", "p");
-  }
-
-  @Override
-  public String getHeader() {
-    return "refseq_build\tchromosome\thgvs_normalized\tvariant_effect\tgeneid\tcDNA\tProtein";
   }
 
   @Override

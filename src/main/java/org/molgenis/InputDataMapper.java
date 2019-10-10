@@ -4,9 +4,11 @@ import java.util.Map;
 
 abstract class InputDataMapper {
 
-  static final HgvsService hgvsRetriever = new HgvsService();
+  protected final HgvsService hgvsService;
 
-  abstract String getHeader();
+  protected InputDataMapper(HgvsService hgvsService) {
+    this.hgvsService = hgvsService;
+  }
 
   abstract void mapData(Map body);
 
