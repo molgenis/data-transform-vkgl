@@ -1,4 +1,4 @@
-package org.molgenis;
+package org.molgenis.core;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

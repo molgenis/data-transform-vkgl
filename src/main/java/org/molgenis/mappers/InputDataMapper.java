@@ -1,12 +1,15 @@
-package org.molgenis;
+package org.molgenis.mappers;
 
 import java.util.Map;
+import org.molgenis.utils.HgvsService;
 
 abstract class InputDataMapper {
 
-  static final HgvsService hgvsRetriever = new HgvsService();
+  protected final HgvsService hgvsService;
 
-  abstract String getHeader();
+  protected InputDataMapper(HgvsService hgvsService) {
+    this.hgvsService = hgvsService;
+  }
 
   abstract void mapData(Map body);
 
@@ -14,7 +17,7 @@ abstract class InputDataMapper {
     return Integer.parseInt(stringToConvert, 10);
   }
 
-  static Map<String, String> classificationTranslation;
+  Map<String, String> classificationTranslation;
 
   void mapClassification(Map body, String originalClassification) {
     String significance = classificationTranslation.get(originalClassification);
