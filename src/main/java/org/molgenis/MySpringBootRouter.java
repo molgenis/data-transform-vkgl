@@ -58,6 +58,7 @@ public class MySpringBootRouter extends RouteBuilder {
   }
 
   @Override
+  @SuppressWarnings("squid:S1192") // String literals should not be duplicated
   public void configure() {
     String resultFile = "file:result";
 
