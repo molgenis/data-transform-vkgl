@@ -1,4 +1,4 @@
-package org.molgenis;
+package org.molgenis.mappers;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -7,10 +7,11 @@ import javax.validation.UnexpectedTypeException;
 import org.apache.camel.Exchange;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.molgenis.utils.FileCreator;
 import org.springframework.stereotype.Component;
 
 @Component
-class GenericDataMapper {
+public class GenericDataMapper {
 
   private final AlissaMapper alissaMapper;
   private final LumcMapper lumcMapper;
@@ -52,7 +53,7 @@ class GenericDataMapper {
     }
   }
 
-  void mapData(Exchange exchange) {
+  public void mapData(Exchange exchange) {
     Map<String, Object> body = (Map<String, Object>) exchange.getIn().getBody();
     Set<String> headers = body.keySet();
     try {

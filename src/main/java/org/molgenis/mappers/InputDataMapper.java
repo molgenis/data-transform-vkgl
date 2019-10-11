@@ -1,6 +1,7 @@
-package org.molgenis;
+package org.molgenis.mappers;
 
 import java.util.Map;
+import org.molgenis.utils.HgvsService;
 
 abstract class InputDataMapper {
 

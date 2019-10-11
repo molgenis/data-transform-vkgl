@@ -1,9 +1,9 @@
-package org.molgenis;
+package org.molgenis.mappers;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.molgenis.GenericDataMapper.getType;
+import static org.molgenis.mappers.GenericDataMapper.getType;
 
 import java.util.Arrays;
 import java.util.HashSet;

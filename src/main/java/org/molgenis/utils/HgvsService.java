@@ -1,11 +1,11 @@
-package org.molgenis;
+package org.molgenis.utils;
 
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.stereotype.Component;
 
 @Component
-class HgvsService {
+public class HgvsService {
 
   private static Map<String, String> chromosomeTranscripts;
 
@@ -55,7 +55,7 @@ class HgvsService {
   }
 
   @SuppressWarnings("squid:CommentedOutCodeLine")
-  String getHgvs(String nmTranscript, String cDNA, String ref, String alt, int start,
+  public String getHgvs(String nmTranscript, String cDNA, String ref, String alt, int start,
       int stop, String chromosome) {
     String hgvs;
     // if (ref and alt not empty) or (transcript+cDNA would be invalid)
@@ -68,7 +68,7 @@ class HgvsService {
     return hgvs;
   }
 
-  String getHgvsG(String ref, String alt, String chromosome, int start, int stop) {
+  public String getHgvsG(String ref, String alt, String chromosome, int start, int stop) {
     String transcript = getTranscriptFromChromosome(chromosome);
     if (ref.length() == 1 && alt.length() == 1 && !isEmptyValue(ref) && !isEmptyValue(alt)) {
       return getHgvsGForSnp(transcript, Integer.toString(start), ref, alt);

@@ -1,20 +1,31 @@
-package org.molgenis;
+package org.molgenis.core;
 
 import static org.apache.camel.Exchange.FILE_NAME;
 import static org.apache.camel.Exchange.HTTP_METHOD;
 import static org.apache.camel.model.dataformat.JsonLibrary.Jackson;
 import static org.apache.camel.util.toolbox.AggregationStrategies.groupedBody;
-import static org.molgenis.AlissaMapper.ALISSA_HEADERS;
-import static org.molgenis.LumcMapper.LUMC_HEADERS;
-import static org.molgenis.RadboudMumcMapper.RADBOUD_HEADERS;
+import static org.molgenis.mappers.AlissaMapper.ALISSA_HEADERS;
+import static org.molgenis.mappers.LumcMapper.LUMC_HEADERS;
+import static org.molgenis.mappers.RadboudMumcMapper.RADBOUD_HEADERS;
 
 import java.util.List;
 import java.util.Map;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.dataformat.csv.CsvDataFormat;
+import org.molgenis.mappers.AlissaVkglTableMapper;
+import org.molgenis.mappers.GenericDataMapper;
+import org.molgenis.mappers.LumcVkglTableMapper;
+import org.molgenis.mappers.RadboudMumcVkglTableMapper;
+import org.molgenis.utils.FileCreator;
+import org.molgenis.validators.ReferenceSequenceValidator;
+import org.molgenis.validators.UniquenessChecker;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
+@SpringBootApplication
+@ComponentScan(basePackages = {"org.molgenis"})
 @Component
 public class MySpringBootRouter extends RouteBuilder {
 

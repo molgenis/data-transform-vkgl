@@ -1,4 +1,4 @@
-package org.molgenis;
+package org.molgenis.mappers;
 
 import java.util.HashMap;
 import java.util.Map;

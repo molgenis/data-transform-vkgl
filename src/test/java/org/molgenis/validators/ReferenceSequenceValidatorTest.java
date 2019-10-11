@@ -1,13 +1,14 @@
-package org.molgenis;
+package org.molgenis.validators;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.molgenis.ReferenceSequenceValidator.matchesOriginalRef;
+import static org.molgenis.validators.ReferenceSequenceValidator.matchesOriginalRef;
 
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.molgenis.validators.ReferenceSequenceValidator;
 
 class ReferenceSequenceValidatorTest {
 

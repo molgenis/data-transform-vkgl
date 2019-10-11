@@ -1,4 +1,4 @@
-package org.molgenis;
+package org.molgenis.utils;
 
 import java.io.FileWriter;
 import java.io.IOException;

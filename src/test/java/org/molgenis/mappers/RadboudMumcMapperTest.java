@@ -1,10 +1,11 @@
-package org.molgenis;
+package org.molgenis.mappers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.molgenis.utils.HgvsService;
 
 class RadboudMumcMapperTest {
 

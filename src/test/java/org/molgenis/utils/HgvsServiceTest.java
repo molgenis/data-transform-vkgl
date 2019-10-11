@@ -1,8 +1,9 @@
-package org.molgenis;
+package org.molgenis.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
+import org.molgenis.utils.HgvsService;
 
 public class HgvsServiceTest {
 

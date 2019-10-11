@@ -1,13 +1,14 @@
-package org.molgenis;
+package org.molgenis.mappers;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.molgenis.utils.HgvsService;
 import org.springframework.stereotype.Component;
 
 @Component
 public class LumcMapper extends InputDataMapper {
 
-  static final String LUMC_HEADERS = "refseq_build\tchromosome\thgvs_normalized\tvariant_effect\tgeneid\tcDNA\tProtein";
+  public static final String LUMC_HEADERS = "refseq_build\tchromosome\thgvs_normalized\tvariant_effect\tgeneid\tcDNA\tProtein";
 
   LumcMapper(HgvsService hgvsService) {
     super(hgvsService);

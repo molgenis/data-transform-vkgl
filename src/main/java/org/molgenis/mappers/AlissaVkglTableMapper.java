@@ -1,4 +1,4 @@
-package org.molgenis;
+package org.molgenis.mappers;
 
 import java.util.Map;
 import org.springframework.stereotype.Component;

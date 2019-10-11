@@ -1,4 +1,4 @@
-package org.molgenis;
+package org.molgenis.validators;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,7 +8,7 @@ import org.apache.camel.Exchange;
 import org.springframework.stereotype.Component;
 
 @Component
-class UniquenessChecker {
+public class UniquenessChecker {
 
   static final String ERROR = "error";
 
@@ -41,7 +41,7 @@ class UniquenessChecker {
     return listOfUniqueVariants;
   }
 
-  void getUniqueVariants(Exchange exchange) {
+  public void getUniqueVariants(Exchange exchange) {
     List<Map> body = exchange.getIn().getBody(List.class);
     List<Map> listOfUniqueVariants = getUniqueVariantsList(body);
     exchange.getIn().setBody(listOfUniqueVariants);

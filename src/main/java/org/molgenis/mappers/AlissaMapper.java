@@ -1,7 +1,8 @@
-package org.molgenis;
+package org.molgenis.mappers;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.molgenis.utils.HgvsService;
 import org.springframework.stereotype.Component;
 
 @Component
