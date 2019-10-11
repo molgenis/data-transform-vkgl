@@ -1,6 +1,6 @@
 package org.molgenis;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 public interface VkglTableMapper {
@@ -9,15 +9,14 @@ public interface VkglTableMapper {
     return chr + "_" + pos + "_" + ref + "_" + alt + "_" + gene;
   }
 
-  default ArrayList<String> getCorrectedRefAndAlt(String ref, String alt, String type) {
-    ArrayList<String> corrected = new ArrayList<>();
+  default Map<String, String> getCorrectedRefAndAlt(String ref, String alt, String type) {
+    HashMap<String, String> corrected = new HashMap<>();
     if (type.equals("sub") && ref.length() == 2 && alt.length() == 2) {
-      corrected.add(ref.substring(1));
-      corrected.add(alt.substring(1));
-    } else {
-      corrected.add(ref);
-      corrected.add(alt);
+      ref = ref.substring(1);
+      alt = alt.substring(1);
     }
+    corrected.put("ref", ref);
+    corrected.put("alt", alt);
     return corrected;
   }
 
@@ -54,12 +53,10 @@ public interface VkglTableMapper {
     body.put("chromosome", chromosome);
     body.put("start", start);
 
-    ArrayList<String> refAndAlt = getCorrectedRefAndAlt(refOrig, altOrig, type);
-    String ref = refAndAlt.get(0);
-    body.put("ref", ref);
-    String alt = refAndAlt.get(1);
-    body.put("alt", alt);
-    String id = getId(ref, alt, chromosome, start, gene);
+    Map<String, String> corrected = getCorrectedRefAndAlt(refOrig, altOrig, type);
+    body.putAll(corrected);
+
+    String id = getId(corrected.get("ref"), corrected.get("alt"), chromosome, start, gene);
     body.put("id", id);
 
     String classification = (String) body.get("significance");
@@ -68,7 +65,7 @@ public interface VkglTableMapper {
     String hgvs = (String) body.get("hgvs_normalized_vkgl");
     body.put(getHgvsType(hgvs), hgvs);
 
-    String stop = getStopPosition(start, ref);
+    String stop = getStopPosition(start, corrected.get("ref"));
     body.put("stop", stop);
   }
 }

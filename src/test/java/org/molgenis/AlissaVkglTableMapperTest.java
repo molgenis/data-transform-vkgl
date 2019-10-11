@@ -3,7 +3,6 @@ package org.molgenis;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -17,10 +16,10 @@ class AlissaVkglTableMapperTest {
     String ref = "AA";
     String alt = "CC";
     String type = "sub";
-    ArrayList observed = alissa.getCorrectedRefAndAlt(ref, alt, type);
-    ArrayList<String> expected = new ArrayList<String>() {{
-      add("A");
-      add("C");
+    Map observed = alissa.getCorrectedRefAndAlt(ref, alt, type);
+    Map<String, String> expected = new HashMap<String, String>() {{
+      put("ref", "A");
+      put("alt", "C");
     }};
     assertEquals(expected, observed);
   }
@@ -30,10 +29,10 @@ class AlissaVkglTableMapperTest {
     String ref = "AA";
     String alt = "A";
     String type = "del";
-    ArrayList observed = alissa.getCorrectedRefAndAlt(ref, alt, type);
-    ArrayList<String> expected = new ArrayList<String>() {{
-      add("AA");
-      add("A");
+    Map observed = alissa.getCorrectedRefAndAlt(ref, alt, type);
+    Map<String, String> expected = new HashMap<String, String>() {{
+      put("ref", "AA");
+      put("alt", "A");
     }};
     assertEquals(expected, observed);
   }
