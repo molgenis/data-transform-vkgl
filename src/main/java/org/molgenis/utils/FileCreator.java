@@ -1,5 +1,6 @@
 package org.molgenis.utils;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,6 +29,7 @@ public class FileCreator {
   public static void createOutputFile(String output, String headers) {
     try {
       Path path = Paths.get(output);
+      Files.createDirectories(path.getParent());
       Files.deleteIfExists(path);
       createFile(output, headers);
     } catch (IOException e) {
