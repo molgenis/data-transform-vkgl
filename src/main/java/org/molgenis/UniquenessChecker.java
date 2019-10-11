@@ -3,28 +3,30 @@ package org.molgenis;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.apache.camel.Exchange;
 import org.springframework.stereotype.Component;
 
 @Component
 class UniquenessChecker {
 
-  List<HashMap> getUniqueVariantsList(List<HashMap> body) {
-    HashMap<String, HashMap> uniqueVariants = new HashMap<>();
-    String errorKey = "error";
+  static final String ERROR = "error";
+
+  List<Map> getUniqueVariantsList(List<Map> body) {
+    Map<String, Map> uniqueVariants = new HashMap<>();
     String hgvsKey = "hgvs_normalized_vkgl";
-    List<HashMap> listOfUniqueVariants = new ArrayList<>();
-    for (HashMap variant : body) {
-      if (!variant.containsKey(errorKey)) {
+    List<Map> listOfUniqueVariants = new ArrayList<>();
+    for (Map variant : body) {
+      if (!variant.containsKey(ERROR)) {
         String id = variant.get("chrom") + Integer.toString((Integer) variant.get("pos")) +
             variant.get("ref") + variant.get("alt") + variant.get("gene");
         if (uniqueVariants.containsKey(id)) {
-          HashMap uniqueVariant = uniqueVariants.get(id);
-          if (uniqueVariant.containsKey(errorKey)) {
-            String error = (String) uniqueVariant.get(errorKey);
-            uniqueVariant.put(errorKey, error + "," + variant.get(hgvsKey));
+          HashMap uniqueVariant = (HashMap) uniqueVariants.get(id);
+          if (uniqueVariant.containsKey(ERROR)) {
+            String error = (String) uniqueVariant.get(ERROR);
+            uniqueVariant.put(ERROR, error + "," + variant.get(hgvsKey));
           } else {
-            uniqueVariant.put(errorKey,
+            uniqueVariant.put(ERROR,
                 "Variant duplicated: " + uniqueVariant.get(hgvsKey) + "," + variant
                     .get(hgvsKey));
           }
@@ -40,8 +42,8 @@ class UniquenessChecker {
   }
 
   void getUniqueVariants(Exchange exchange) {
-    List<HashMap> body = (List<HashMap>) exchange.getIn().getBody(List.class);
-    List<HashMap> listOfUniqueVariants = getUniqueVariantsList(body);
+    List<Map> body = exchange.getIn().getBody(List.class);
+    List<Map> listOfUniqueVariants = getUniqueVariantsList(body);
     exchange.getIn().setBody(listOfUniqueVariants);
   }
 }
