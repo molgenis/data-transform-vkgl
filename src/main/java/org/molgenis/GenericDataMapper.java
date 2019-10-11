@@ -18,6 +18,12 @@ class GenericDataMapper {
 
   private static Log log = LogFactory.getLog(FileCreator.class);
 
+  private enum LabType {
+    lumc,
+    radboud,
+    alissa
+  }
+
   public GenericDataMapper(AlissaMapper alissaMapper, LumcMapper lumcMapper,
       RadboudMumcMapper radboudMumcMapper) {
     this.alissaMapper = alissaMapper;
@@ -33,13 +39,13 @@ class GenericDataMapper {
     if (isTypeHeader(headers,
         LumcMapper.LUMC_HEADERS
             .replace("hgvs_normalized", "gDNA_normalized"))) {
-      return "lumc";
+      return LabType.lumc.name();
     } else if (isTypeHeader(headers, RadboudMumcMapper.RADBOUD_HEADERS)) {
-      return "radboud";
+      return LabType.radboud.name();
     } else if (isTypeHeader(headers,
         AlissaMapper.ALISSA_HEADERS
             .replace("_orig", ""))) {
-      return "alissa";
+      return LabType.alissa.name();
     } else {
       throw new UnexpectedTypeException(
           "Lab type not recognized, check headers with headers of alissa, radboud, and lumc");
@@ -53,9 +59,9 @@ class GenericDataMapper {
       String labType = getType(headers);
       exchange.getIn().getHeaders().put("labType", labType);
 
-      if (labType.equals("lumc")) {
+      if (labType.equals(LabType.lumc.name())) {
         lumcMapper.mapData(body);
-      } else if (labType.equals("radboud")) {
+      } else if (labType.equals(LabType.radboud.name())) {
         radboudMumcMapper.mapData(body);
       } else {
         alissaMapper.mapData(body);
