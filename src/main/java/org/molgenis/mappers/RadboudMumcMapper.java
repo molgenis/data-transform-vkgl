@@ -15,7 +15,7 @@ public class RadboudMumcMapper extends InputDataMapper {
     classificationTranslation = new HashMap<>();
     classificationTranslation.put("class 1", "b");
     classificationTranslation.put("class 2", "lb");
-    classificationTranslation.put("class 3", "v");
+    classificationTranslation.put("class 3", "vus");
     classificationTranslation.put("class 4", "lp");
     classificationTranslation.put("class 5", "p");
   }

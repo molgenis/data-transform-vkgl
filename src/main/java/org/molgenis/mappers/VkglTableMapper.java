@@ -2,11 +2,13 @@ package org.molgenis.mappers;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.molgenis.utils.Hasher;
 
 public interface VkglTableMapper {
 
   default String getId(String ref, String alt, String chr, String pos, String gene) {
-    return chr + "_" + pos + "_" + ref + "_" + alt + "_" + gene;
+    String id = chr + "_" + pos + "_" + ref + "_" + alt + "_" + gene;
+    return Hasher.hash(id);
   }
 
   default Map<String, String> getCorrectedRefAndAlt(String ref, String alt, String type) {

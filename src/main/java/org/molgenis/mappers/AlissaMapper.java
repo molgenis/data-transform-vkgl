@@ -15,7 +15,7 @@ public class AlissaMapper extends InputDataMapper {
     classificationTranslation = new HashMap<>();
     classificationTranslation.put("BENIGN", "b");
     classificationTranslation.put("LIKELY_BENIGN", "lb");
-    classificationTranslation.put("VOUS", "v");
+    classificationTranslation.put("VOUS", "vus");
     classificationTranslation.put("LIKELY_PATHOGENIC", "lp");
     classificationTranslation.put("PATHOGENIC", "p");
   }

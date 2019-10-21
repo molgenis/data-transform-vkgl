@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.molgenis.mappers.AlissaVkglTableMapper;
 
 class AlissaVkglTableMapperTest {
 
@@ -68,7 +67,8 @@ class AlissaVkglTableMapperTest {
     String pos = "12345";
     String gene = "ABCD3";
     String actual = alissa.getId(ref, alt, chr, pos, gene);
-    assertEquals("1_12345_T_TTG_ABCD3", actual);
+    // Hash generated with python to make sure it is compatible
+    assertEquals("d090e9ab54023091bc4b2f6de3312795cb1da4889f6eeb5b91ed87ee1ed082e4", actual);
   }
 
   @Test
@@ -96,7 +96,8 @@ class AlissaVkglTableMapperTest {
 
     assertEquals("A", body.get("ref"));
     assertEquals("G", body.get("alt"));
-    assertEquals("X_124_A_G_ABCD1", body.get("id"));
+    assertEquals("d961921b76247b0acd01bff18a3093cd7ab4a6c13cce66643d7ff3a3a4a37fdb",
+        body.get("id"));
     assertEquals("b", body.get("classification"));
     assertEquals("NC_000023.10:g.124A>G", body.get("hgvs_g"));
     assertEquals("124", body.get("stop"));
