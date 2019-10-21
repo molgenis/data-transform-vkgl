@@ -88,12 +88,15 @@ class AlissaVkglTableMapperTest {
 
     alissa.mapLine(body);
 
-    assertFalse(body.containsKey("protein"));
-    assertFalse(body.containsKey("location"));
-    assertFalse(body.containsKey("exon"));
-    assertFalse(body.containsKey("effect"));
+    // Make sure the key is not the alissa key, but the vkgl one (issue #6)
     assertFalse(body.containsKey("last_updated_on"));
 
+    assertEquals("", body.get("protein"));
+    assertEquals("", body.get("location"));
+    assertEquals("", body.get("exon"));
+    assertEquals("", body.get("effect"));
+    assertEquals("", body.get("lab_upload_date"));
+    assertEquals("", body.get("protein"));
     assertEquals("A", body.get("ref"));
     assertEquals("G", body.get("alt"));
     assertEquals("d961921b76247b0acd01bff18a3093cd7ab4a6c13cce66643d7ff3a3a4a37fdb",
