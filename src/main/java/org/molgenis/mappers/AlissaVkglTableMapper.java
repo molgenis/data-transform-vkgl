@@ -10,6 +10,8 @@ public class AlissaVkglTableMapper implements VkglTableMapper {
   public void addIfNotNull(Map body, String labKey, String targetKey) {
     if (body.containsKey(labKey) && !body.get(labKey).equals("NULL")) {
       body.put(targetKey, body.get(labKey));
+    } else {
+      body.put(targetKey, "");
     }
   }
 
