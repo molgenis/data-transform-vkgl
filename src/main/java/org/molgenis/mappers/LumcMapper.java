@@ -15,7 +15,7 @@ public class LumcMapper extends InputDataMapper {
     classificationTranslation = new HashMap<>();
     classificationTranslation.put("-", "b");
     classificationTranslation.put("-?", "lb");
-    classificationTranslation.put("?", "v");
+    classificationTranslation.put("?", "vus");
     classificationTranslation.put("+?", "lp");
     classificationTranslation.put("+", "p");
   }
