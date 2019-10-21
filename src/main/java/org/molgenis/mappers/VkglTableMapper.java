@@ -11,14 +11,17 @@ public interface VkglTableMapper {
     return Hasher.hash(id);
   }
 
-  default Map<String, String> getCorrectedRefAndAlt(String ref, String alt, String type) {
+  default Map<String, String> getCorrectedRefAndAlt(String ref, String alt, String type,
+      int start) {
     HashMap<String, String> corrected = new HashMap<>();
     if (type.equals("sub") && ref.length() == 2 && alt.length() == 2) {
       ref = ref.substring(1);
       alt = alt.substring(1);
+      start += 1;
     }
     corrected.put("ref", ref);
     corrected.put("alt", alt);
+    corrected.put("start", Integer.toString(start));
     return corrected;
   }
 
@@ -30,8 +33,8 @@ public interface VkglTableMapper {
     }
   }
 
-  default String getStopPosition(String startPosition, String ref) {
-    int stop = Integer.parseInt(startPosition) + ref.length() - 1;
+  default String getStopPosition(int startPosition, String ref) {
+    int stop = startPosition + ref.length() - 1;
     return Integer.toString(stop);
   }
 
@@ -49,16 +52,16 @@ public interface VkglTableMapper {
 
     String type = (String) body.get("type");
     String chromosome = (String) body.get("chrom");
-    String start = Integer.toString((int) body.get("pos"));
+    int start = (int) body.get("pos");
     String gene = (String) body.get("gene");
     body.put("type", type);
     body.put("chromosome", chromosome);
-    body.put("start", start);
 
-    Map<String, String> corrected = getCorrectedRefAndAlt(refOrig, altOrig, type);
+    Map<String, String> corrected = getCorrectedRefAndAlt(refOrig, altOrig, type, start);
     body.putAll(corrected);
 
-    String id = getId(corrected.get("ref"), corrected.get("alt"), chromosome, start, gene);
+    String id = getId(corrected.get("ref"), corrected.get("alt"), chromosome,
+        Integer.toString(start), gene);
     body.put("id", id);
 
     String classification = (String) body.get("significance");

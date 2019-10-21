@@ -16,10 +16,12 @@ class AlissaVkglTableMapperTest {
     String ref = "AA";
     String alt = "CC";
     String type = "sub";
-    Map observed = alissa.getCorrectedRefAndAlt(ref, alt, type);
+    int start = 123;
+    Map observed = alissa.getCorrectedRefAndAlt(ref, alt, type, start);
     Map<String, String> expected = new HashMap<String, String>() {{
       put("ref", "A");
       put("alt", "C");
+      put("start", "124");
     }};
     assertEquals(expected, observed);
   }
@@ -29,17 +31,19 @@ class AlissaVkglTableMapperTest {
     String ref = "AA";
     String alt = "A";
     String type = "del";
-    Map observed = alissa.getCorrectedRefAndAlt(ref, alt, type);
+    int start = 123;
+    Map observed = alissa.getCorrectedRefAndAlt(ref, alt, type, start);
     Map<String, String> expected = new HashMap<String, String>() {{
       put("ref", "AA");
       put("alt", "A");
+      put("start", "123");
     }};
     assertEquals(expected, observed);
   }
 
   @Test
   void getStopPositionTest() {
-    String start = "123";
+    int start = 123;
     String ref = "AA";
     String actual = alissa.getStopPosition(start, ref);
     assertEquals("124", actual);
