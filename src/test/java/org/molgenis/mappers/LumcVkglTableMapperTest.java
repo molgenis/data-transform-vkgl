@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.molgenis.mappers.LumcVkglTableMapper;
 
 class LumcVkglTableMapperTest {
 
@@ -39,7 +38,8 @@ class LumcVkglTableMapperTest {
 
     assertEquals("A", body.get("ref"));
     assertEquals("G", body.get("alt"));
-    assertEquals("X_124_A_G_ABCD1", body.get("id"));
+    assertEquals("d961921b76247b0acd01bff18a3093cd7ab4a6c13cce66643d7ff3a3a4a37fdb",
+        body.get("id"));
     assertEquals("b", body.get("classification"));
     assertEquals("NC_000023.10:g.124A>G", body.get("hgvs_g"));
     assertEquals("124", body.get("stop"));
