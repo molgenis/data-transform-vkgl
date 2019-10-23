@@ -61,7 +61,7 @@ public interface VkglTableMapper {
     body.putAll(corrected);
 
     String id = getId(corrected.get("ref"), corrected.get("alt"), chromosome,
-        Integer.toString(start), gene);
+        corrected.get("start"), gene);
     body.put("id", id);
 
     String classification = (String) body.get("significance");
@@ -70,7 +70,7 @@ public interface VkglTableMapper {
     String hgvs = (String) body.get("hgvs_normalized_vkgl");
     body.put(getHgvsType(hgvs), hgvs);
 
-    String stop = getStopPosition(start, corrected.get("ref"));
+    String stop = getStopPosition(Integer.parseInt(corrected.get("start")), corrected.get("ref"));
     body.put("stop", stop);
   }
 }

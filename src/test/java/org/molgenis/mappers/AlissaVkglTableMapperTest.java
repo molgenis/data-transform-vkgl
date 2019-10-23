@@ -103,11 +103,11 @@ class AlissaVkglTableMapperTest {
     assertEquals("", body.get("protein"));
     assertEquals("A", body.get("ref"));
     assertEquals("G", body.get("alt"));
-    assertEquals("d961921b76247b0acd01bff18a3093cd7ab4a6c13cce66643d7ff3a3a4a37fdb",
+    assertEquals("73c7e515962203d90dc9a86d7b1040747db0ee5918660a88758ade3a7ae13d0f",
         body.get("id"));
     assertEquals("b", body.get("classification"));
     assertEquals("NC_000023.10:g.124A>G", body.get("hgvs_g"));
-    assertEquals("124", body.get("stop"));
+    assertEquals("125", body.get("stop"));
   }
 
 }
