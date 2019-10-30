@@ -9,6 +9,7 @@ public class Hasher {
     throw new IllegalStateException("Util class should not be instantiated");
   }
 
+  @SuppressWarnings("squid:S4790")
   public static String hash(String inputValue) {
     return Hashing.sha256()
         .hashString(inputValue, StandardCharsets.UTF_8)
