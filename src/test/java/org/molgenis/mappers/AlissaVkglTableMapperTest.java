@@ -1,12 +1,10 @@
 package org.molgenis.mappers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.molgenis.mappers.AlissaVkglTableMapper;
 
 class AlissaVkglTableMapperTest {
 
@@ -17,10 +15,12 @@ class AlissaVkglTableMapperTest {
     String ref = "AA";
     String alt = "CC";
     String type = "sub";
-    Map observed = alissa.getCorrectedRefAndAlt(ref, alt, type);
+    int start = 123;
+    Map observed = alissa.getCorrectedRefAndAlt(ref, alt, type, start);
     Map<String, String> expected = new HashMap<String, String>() {{
       put("ref", "A");
       put("alt", "C");
+      put("start", "124");
     }};
     assertEquals(expected, observed);
   }
@@ -30,17 +30,19 @@ class AlissaVkglTableMapperTest {
     String ref = "AA";
     String alt = "A";
     String type = "del";
-    Map observed = alissa.getCorrectedRefAndAlt(ref, alt, type);
+    int start = 123;
+    Map observed = alissa.getCorrectedRefAndAlt(ref, alt, type, start);
     Map<String, String> expected = new HashMap<String, String>() {{
       put("ref", "AA");
       put("alt", "A");
+      put("start", "123");
     }};
     assertEquals(expected, observed);
   }
 
   @Test
   void getStopPositionTest() {
-    String start = "123";
+    int start = 123;
     String ref = "AA";
     String actual = alissa.getStopPosition(start, ref);
     assertEquals("124", actual);
@@ -68,7 +70,8 @@ class AlissaVkglTableMapperTest {
     String pos = "12345";
     String gene = "ABCD3";
     String actual = alissa.getId(ref, alt, chr, pos, gene);
-    assertEquals("1_12345_T_TTG_ABCD3", actual);
+    // Hash generated with python to make sure it is compatible
+    assertEquals("d090e9ab54023091bc4b2f6de3312795cb1da4889f6eeb5b91ed87ee1ed082e4", actual);
   }
 
   @Test
@@ -85,21 +88,23 @@ class AlissaVkglTableMapperTest {
     body.put("c_nomen", "c.1234A>G");
     body.put("transcript", "NM_1234.5");
     body.put("p_nomen", "NULL");
+    body.put("last_updated_on", "2016-10-07 12:10:06");
 
     alissa.mapLine(body);
 
-    assertFalse(body.containsKey("protein"));
-    assertFalse(body.containsKey("location"));
-    assertFalse(body.containsKey("exon"));
-    assertFalse(body.containsKey("effect"));
-    assertFalse(body.containsKey("last_updated_on"));
-
+    assertEquals("", body.get("protein"));
+    assertEquals("", body.get("location"));
+    assertEquals("", body.get("exon"));
+    assertEquals("", body.get("effect"));
+    assertEquals("2016-10-07 12:10:06", body.get("lab_upload_date"));
+    assertEquals("", body.get("protein"));
     assertEquals("A", body.get("ref"));
     assertEquals("G", body.get("alt"));
-    assertEquals("X_124_A_G_ABCD1", body.get("id"));
+    assertEquals("73c7e515962203d90dc9a86d7b1040747db0ee5918660a88758ade3a7ae13d0f",
+        body.get("id"));
     assertEquals("b", body.get("classification"));
     assertEquals("NC_000023.10:g.124A>G", body.get("hgvs_g"));
-    assertEquals("124", body.get("stop"));
+    assertEquals("125", body.get("stop"));
   }
 
 }
