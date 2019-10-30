@@ -1,7 +1,6 @@
 package org.molgenis.mappers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -89,17 +88,15 @@ class AlissaVkglTableMapperTest {
     body.put("c_nomen", "c.1234A>G");
     body.put("transcript", "NM_1234.5");
     body.put("p_nomen", "NULL");
+    body.put("last_updated_on", "2016-10-07 12:10:06");
 
     alissa.mapLine(body);
-
-    // Make sure the key is not the alissa key, but the vkgl one (issue #6)
-    assertFalse(body.containsKey("last_updated_on"));
 
     assertEquals("", body.get("protein"));
     assertEquals("", body.get("location"));
     assertEquals("", body.get("exon"));
     assertEquals("", body.get("effect"));
-    assertEquals("", body.get("lab_upload_date"));
+    assertEquals("2016-10-07 12:10:06", body.get("lab_upload_date"));
     assertEquals("", body.get("protein"));
     assertEquals("A", body.get("ref"));
     assertEquals("G", body.get("alt"));
