@@ -58,9 +58,9 @@ public class HgvsService {
   public String getHgvs(String nmTranscript, String cDNA, String ref, String alt, int start,
       int stop, String chromosome) {
     String hgvs;
-    // if (ref and alt not empty) or (transcript+cDNA would be invalid)
-    if (!(isEmptyValue(ref) && isEmptyValue(alt)) || (isEmptyValue(nmTranscript) || isEmptyValue(
-        cDNA) || nmTranscript.startsWith("NC"))) {
+    // if (ref and alt not empty) or (transcript+cDNA would be invalid) and chromosome != MT
+    if ((!(isEmptyValue(ref) && isEmptyValue(alt)) || (isEmptyValue(nmTranscript) || isEmptyValue(
+        cDNA) || nmTranscript.startsWith("NC"))) && !"chrMT".equals(chromosome)) {
       hgvs = getHgvsG(ref, alt, chromosome, start, stop);
     } else {
       hgvs = nmTranscript + ":" + cDNA;

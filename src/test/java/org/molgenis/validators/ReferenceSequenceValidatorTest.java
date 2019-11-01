@@ -8,7 +8,6 @@ import static org.molgenis.validators.ReferenceSequenceValidator.matchesOriginal
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.molgenis.validators.ReferenceSequenceValidator;
 
 class ReferenceSequenceValidatorTest {
 
@@ -54,6 +53,32 @@ class ReferenceSequenceValidatorTest {
       put("ref_orig", "C");
       put("start", "123");
       put("pos", 123);
+    }};
+    validator.validateOriginalRef(body);
+    assertFalse(body.containsKey("error"));
+  }
+
+  @Test
+  void validateOriginalRefMTTest() {
+    Map<String, Object> body = new HashMap<String, Object>() {{
+      put("ref", "C");
+      put("ref_orig", "C");
+      put("start", "123");
+      put("pos", 123);
+      put("chromosome", "MT");
+    }};
+    validator.validateOriginalRef(body);
+    assertFalse(body.containsKey("error"));
+  }
+
+  @Test
+  void validateOriginalRefMErrorTest() {
+    Map<String, Object> body = new HashMap<String, Object>() {{
+      put("ref", "C");
+      put("ref_orig", ".");
+      put("start", "123");
+      put("pos", 123);
+      put("chromosome", "MT");
     }};
     validator.validateOriginalRef(body);
     assertFalse(body.containsKey("error"));
