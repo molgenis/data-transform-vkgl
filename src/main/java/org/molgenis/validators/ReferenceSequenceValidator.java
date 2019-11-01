@@ -29,7 +29,7 @@ public class ReferenceSequenceValidator {
       if (!matchesOriginalRef(refOrig, ref, startOrig, start)) {
         body.put(ERROR, "Incorrect original reference");
       }
-    } else if (body.containsKey(ERROR) && body.get("chromosome").equals("MT")) {
+    } else if (body.containsKey(ERROR) && "MT".equals(body.get("chromosome"))) {
       String ref = (String) body.get("ref_orig");
       String alt = (String) body.get("alt_orig");
       if (!ref.equals(".") && !alt.equals(".")) {

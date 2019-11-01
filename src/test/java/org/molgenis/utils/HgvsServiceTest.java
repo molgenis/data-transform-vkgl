@@ -3,7 +3,6 @@ package org.molgenis.utils;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
-import org.molgenis.utils.HgvsService;
 
 public class HgvsServiceTest {
 
@@ -105,6 +104,16 @@ public class HgvsServiceTest {
         .getHgvs("NC_000002.11", "c.37408G>T", "C", "A",
             179519254, 179519254, "chr2");
     assertEquals("NC_000002.11:g.179519254C>A",
+        actual,
+        "Hgvs is created using NC, pos, ref and alt");
+  }
+
+  @Test
+  void getHgvsMTTest() {
+    String actual = hgvsService
+        .getHgvs("NC_012920.1", "m.15326A>G", "A", "G",
+            15326, 15326, "chrMT");
+    assertEquals("NC_012920.1:m.15326A>G",
         actual,
         "Hgvs is created using NC, pos, ref and alt");
   }

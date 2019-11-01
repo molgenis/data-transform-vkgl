@@ -60,7 +60,7 @@ public class HgvsService {
     String hgvs;
     // if (ref and alt not empty) or (transcript+cDNA would be invalid) and chromosome != MT
     if ((!(isEmptyValue(ref) && isEmptyValue(alt)) || (isEmptyValue(nmTranscript) || isEmptyValue(
-        cDNA) || nmTranscript.startsWith("NC"))) && !chromosome.equals("chrMT")) {
+        cDNA) || nmTranscript.startsWith("NC"))) && !"chrMT".equals(chromosome)) {
       hgvs = getHgvsG(ref, alt, chromosome, start, stop);
     } else {
       hgvs = nmTranscript + ":" + cDNA;
