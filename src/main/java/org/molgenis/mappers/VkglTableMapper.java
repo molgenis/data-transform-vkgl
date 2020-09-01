@@ -11,14 +11,15 @@ public interface VkglTableMapper {
     return Hasher.hash(id);
   }
 
-  default Map<String, String> getCorrectedRefAndAlt(String ref, String alt, String type,
-      int start) {
+  default Map<String, String> getCorrectedRefAndAlt(String ref, String alt, int start) {
     HashMap<String, String> corrected = new HashMap<>();
-    if (type.equals("sub") && ref.length() == 2 && alt.length() == 2) {
+
+    if (alt.length() > 1 && ref.length() > 1 && ref.charAt(0) == alt.charAt(0)) {
       ref = ref.substring(1);
       alt = alt.substring(1);
       start += 1;
     }
+
     corrected.put("ref", ref);
     corrected.put("alt", alt);
     corrected.put("start", Integer.toString(start));
@@ -57,7 +58,7 @@ public interface VkglTableMapper {
     body.put("type", type);
     body.put("chromosome", chromosome);
 
-    Map<String, String> corrected = getCorrectedRefAndAlt(refOrig, altOrig, type, start);
+    Map<String, String> corrected = getCorrectedRefAndAlt(refOrig, altOrig, start);
     body.putAll(corrected);
 
     String id = getId(corrected.get("ref"), corrected.get("alt"), chromosome,
