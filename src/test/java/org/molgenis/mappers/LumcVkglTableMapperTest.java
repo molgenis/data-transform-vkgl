@@ -23,7 +23,7 @@ class LumcVkglTableMapperTest {
   void mapLineTest() {
     Map<String, Object> body = new HashMap<>();
     body.put("ref", "AA");
-    body.put("alt", "GG");
+    body.put("alt", "AG");
     body.put("type", "sub");
     body.put("chrom", "X");
     body.put("pos", 124);
