@@ -13,10 +13,9 @@ class AlissaVkglTableMapperTest {
   @Test
   void getCorrectedRefAndAltSubTest() {
     String ref = "AA";
-    String alt = "CC";
-    String type = "sub";
+    String alt = "AC";
     int start = 123;
-    Map observed = alissa.getCorrectedRefAndAlt(ref, alt, type, start);
+    Map observed = alissa.getCorrectedRefAndAlt(ref, alt, start);
     Map<String, String> expected = new HashMap<String, String>() {{
       put("ref", "A");
       put("alt", "C");
@@ -29,13 +28,40 @@ class AlissaVkglTableMapperTest {
   void getCorrectedRefAndAltDelTest() {
     String ref = "AA";
     String alt = "A";
-    String type = "del";
     int start = 123;
-    Map observed = alissa.getCorrectedRefAndAlt(ref, alt, type, start);
+    Map observed = alissa.getCorrectedRefAndAlt(ref, alt, start);
     Map<String, String> expected = new HashMap<String, String>() {{
       put("ref", "AA");
       put("alt", "A");
       put("start", "123");
+    }};
+    assertEquals(expected, observed);
+  }
+
+  @Test
+  void getCorrectedRefAndAltInsTest() {
+    String ref = "A";
+    String alt = "AA";
+    int start = 123;
+    Map observed = alissa.getCorrectedRefAndAlt(ref, alt, start);
+    Map<String, String> expected = new HashMap<String, String>() {{
+      put("ref", "A");
+      put("alt", "AA");
+      put("start", "123");
+    }};
+    assertEquals(expected, observed);
+  }
+
+  @Test
+  void getCorrectedRefAndAltInDelTest() {
+    String ref = "ATGGAGAGACAGCGAGAAGACCAGGAAC";
+    String alt = "AAGA";
+    int start = 91670141;
+    Map observed = alissa.getCorrectedRefAndAlt(ref, alt, start);
+    Map<String, String> expected = new HashMap<String, String>() {{
+      put("ref", "TGGAGAGACAGCGAGAAGACCAGGAAC");
+      put("alt", "AGA");
+      put("start", "91670142");
     }};
     assertEquals(expected, observed);
   }
@@ -78,7 +104,7 @@ class AlissaVkglTableMapperTest {
   void mapLineTest() {
     Map<String, Object> body = new HashMap<>();
     body.put("ref", "AA");
-    body.put("alt", "GG");
+    body.put("alt", "AG");
     body.put("type", "sub");
     body.put("chrom", "X");
     body.put("pos", 124);
