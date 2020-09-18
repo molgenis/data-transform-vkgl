@@ -74,8 +74,16 @@ public class HgvsService {
       return getHgvsGForSnp(transcript, Integer.toString(start), ref, alt);
     } else if ((ref.length() > 1 && alt.length() == 1) || alt.equals(".")) {
       if (!alt.equals(".")) {
-        start = start + 1;
-        ref = ref.substring(1);
+        if (alt.charAt(0) == ref.charAt(0)) {
+          start = start + 1;
+          ref = ref.substring(1);
+        } else if (ref.charAt(ref.length() - 1) == alt.charAt(0)) {
+          stop = stop - 1;
+          ref = ref.substring(0, ref.length() - 1);
+        } else {
+          return getHgvsGForDelIns(transcript, Integer.toString(start), alt,
+              Integer.toString(stop), "delins");
+        }
       }
       return getHgvsGForDelIns(transcript, Integer.toString(start), ref, Integer.toString(stop),
           "del");

@@ -49,6 +49,16 @@ public class HgvsServiceTest {
   }
 
   @Test
+  void getHgvsGDeletionInvertedTest() {
+    String actual = hgvsService
+        .getHgvsG("ACC", "C", "chr1", 160109408,
+            160109410);
+    assertEquals("NC_000001.10:g.160109408_160109409delAC",
+        actual,
+        "Hgvs is created for insertion without ref");
+  }
+
+  @Test
   void getHgvsGDeletionWithMissingAltTest() {
     String actual = hgvsService
         .getHgvsG("GGCCG", ".", "chr19", 47249352,
@@ -79,13 +89,23 @@ public class HgvsServiceTest {
   }
 
   @Test
-  void getHgvsGShortDelinsTest() {
+  void getHgvsGShortDelinsInsTest() {
     String actual = hgvsService
         .getHgvsG("A", "TT", "chr2", 179486188,
             179486189);
     assertEquals("NC_000002.11:g.179486188_179486189delinsTT",
         actual,
-        "Hgvs is created for Delins");
+        "Hgvs is created for delins");
+  }
+
+  @Test
+  void getHgvsGShortDelinsDelTest() {
+    String actual = hgvsService
+        .getHgvsG("ACC", "T", "chr1", 160109408,
+            160109410);
+    assertEquals("NC_000001.10:g.160109408_160109410delinsT",
+        actual,
+        "Hgvs is created for delins");
   }
 
   @Test
