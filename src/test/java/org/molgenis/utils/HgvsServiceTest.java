@@ -19,6 +19,16 @@ public class HgvsServiceTest {
   }
 
   @Test
+  void getHgvsGInsertionWrittenAsIndelTest() {
+    String actual = hgvsService
+        .getHgvsG("T", "CT", "chr1", 160109411,
+            160109412);
+    assertEquals("NC_000001.10:g.160109410_160109411insC",
+        actual,
+        "Hgvs is created for insertion with correct position");
+  }
+
+  @Test
   void getHgvsGInsertionWithMissingRefTest() {
     String actual = hgvsService
         .getHgvsG(".", "CTG", "chr19", 13318672,
@@ -64,6 +74,16 @@ public class HgvsServiceTest {
         .getHgvsG("AAATAAAAGA", "TT", "chr2", 179486188,
             179523777);
     assertEquals("NC_000002.11:g.179486188_179523777delinsTT",
+        actual,
+        "Hgvs is created for Delins");
+  }
+
+  @Test
+  void getHgvsGShortDelinsTest() {
+    String actual = hgvsService
+        .getHgvsG("A", "TT", "chr2", 179486188,
+            179486189);
+    assertEquals("NC_000002.11:g.179486188_179486189delinsTT",
         actual,
         "Hgvs is created for Delins");
   }

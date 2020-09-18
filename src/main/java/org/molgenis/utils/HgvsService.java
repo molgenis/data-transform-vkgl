@@ -81,8 +81,17 @@ public class HgvsService {
           "del");
     } else if ((ref.length() == 1 && alt.length() > 1) || ref.equals(".")) {
       if (!ref.equals(".")) {
-        alt = alt.substring(1);
-        start = start + 1;
+        if (alt.charAt(0) == ref.charAt(0)) {
+          alt = alt.substring(1);
+          start = start + 1;
+        } else if (alt.charAt(alt.length() - 1) == ref.charAt(0)) {
+          alt = alt.substring(0, alt.length() - 1);
+          start = start - 1;
+        } else {
+          stop = start + 1;
+          return getHgvsGForDelIns(transcript, Integer.toString(start), alt,
+              Integer.toString(stop), "delins");
+        }
       }
       // prevent insertion length must be 1 error
       stop = start + 1;
