@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 public class HgvsService {
 
   private static Map<String, String> chromosomeTranscripts;
+  private static final String DELINS = "delins";
 
   static {
     chromosomeTranscripts = new HashMap<>();
@@ -68,46 +69,55 @@ public class HgvsService {
     return hgvs;
   }
 
+  private String getHgvsGForDeletions(String ref, String alt, int start, int stop,
+      String transcript) {
+    if (!alt.equals(".")) {
+      if (alt.charAt(0) == ref.charAt(0)) {
+        start = start + 1;
+        ref = ref.substring(1);
+      } else if (ref.charAt(ref.length() - 1) == alt.charAt(0)) {
+        stop = stop - 1;
+        ref = ref.substring(0, ref.length() - 1);
+      } else {
+        return getHgvsGForDelIns(transcript, Integer.toString(start), alt,
+            Integer.toString(stop), DELINS);
+      }
+    }
+    return getHgvsGForDelIns(transcript, Integer.toString(start), ref, Integer.toString(stop),
+        "del");
+  }
+
+  private String getHgvsGForInsertions(String ref, String alt, int start, String transcript) {
+    if (!ref.equals(".")) {
+      if (alt.charAt(0) == ref.charAt(0)) {
+        alt = alt.substring(1);
+        start = start + 1;
+      } else if (alt.charAt(alt.length() - 1) == ref.charAt(0)) {
+        alt = alt.substring(0, alt.length() - 1);
+        start = start - 1;
+      } else {
+        int stop = start + 1;
+        return getHgvsGForDelIns(transcript, Integer.toString(start), alt,
+            Integer.toString(stop), DELINS);
+      }
+    }
+    // prevent insertion length must be 1 error
+    int stop = start + 1;
+    return getHgvsGForDelIns(transcript, Integer.toString(start), alt,
+        Integer.toString(stop), "ins");
+  }
+
   public String getHgvsG(String ref, String alt, String chromosome, int start, int stop) {
     String transcript = getTranscriptFromChromosome(chromosome);
     if (ref.length() == 1 && alt.length() == 1 && !isEmptyValue(ref) && !isEmptyValue(alt)) {
       return getHgvsGForSnp(transcript, Integer.toString(start), ref, alt);
     } else if ((ref.length() > 1 && alt.length() == 1) || alt.equals(".")) {
-      if (!alt.equals(".")) {
-        if (alt.charAt(0) == ref.charAt(0)) {
-          start = start + 1;
-          ref = ref.substring(1);
-        } else if (ref.charAt(ref.length() - 1) == alt.charAt(0)) {
-          stop = stop - 1;
-          ref = ref.substring(0, ref.length() - 1);
-        } else {
-          return getHgvsGForDelIns(transcript, Integer.toString(start), alt,
-              Integer.toString(stop), "delins");
-        }
-      }
-      return getHgvsGForDelIns(transcript, Integer.toString(start), ref, Integer.toString(stop),
-          "del");
+      return getHgvsGForDeletions(ref, alt, start, stop, transcript);
     } else if ((ref.length() == 1 && alt.length() > 1) || ref.equals(".")) {
-      if (!ref.equals(".")) {
-        if (alt.charAt(0) == ref.charAt(0)) {
-          alt = alt.substring(1);
-          start = start + 1;
-        } else if (alt.charAt(alt.length() - 1) == ref.charAt(0)) {
-          alt = alt.substring(0, alt.length() - 1);
-          start = start - 1;
-        } else {
-          stop = start + 1;
-          return getHgvsGForDelIns(transcript, Integer.toString(start), alt,
-              Integer.toString(stop), "delins");
-        }
-      }
-      // prevent insertion length must be 1 error
-      stop = start + 1;
-      return getHgvsGForDelIns(transcript, Integer.toString(start), alt,
-          Integer.toString(stop), "ins");
+      return getHgvsGForInsertions(ref, alt, start, transcript);
     } else {
       return getHgvsGForDelIns(transcript, Integer.toString(start), alt,
-          Integer.toString(stop), "delins");
+          Integer.toString(stop), DELINS);
     }
   }
 }
