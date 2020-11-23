@@ -92,8 +92,9 @@ public class HgvsServiceTest {
   void getHgvsGShortDelinsInsTest() {
     String actual = hgvsService
         .getHgvsG("A", "TT", "chr2", 179486188,
-            179486189);
-    assertEquals("NC_000002.11:g.179486188_179486189delinsTT",
+            179486188);
+    assertEquals("NC_000002.11:g.179486188_179486188"
+            + "delinsTT",
         actual,
         "Hgvs is created for delins");
   }

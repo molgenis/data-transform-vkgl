@@ -96,7 +96,7 @@ public class HgvsService {
         alt = alt.substring(0, alt.length() - 1);
         start = start - 1;
       } else {
-        int stop = start + 1;
+        int stop = start;
         return getHgvsGForDelIns(transcript, Integer.toString(start), alt,
             Integer.toString(stop), DELINS);
       }
