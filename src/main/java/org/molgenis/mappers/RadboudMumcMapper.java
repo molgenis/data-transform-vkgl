@@ -10,7 +10,7 @@ public class RadboudMumcMapper extends InputDataMapper {
 
   public static final String RADBOUD_HEADERS = "chromosome_orig\tstart\tstop\tref_orig\talt_orig\tgene\ttranscript\tprotein\tempty1\texon\tempty2\tclassification";
 
-  RadboudMumcMapper(HgvsService hgvsService) {
+  public RadboudMumcMapper(HgvsService hgvsService) {
     super(hgvsService);
     classificationTranslation = new HashMap<>();
     classificationTranslation.put("class 1", "b");

@@ -10,7 +10,7 @@ public class AlissaMapper extends InputDataMapper {
 
   public static final String ALISSA_HEADERS = "timestamp\tid\tchromosome\tstart\tstop\tref_orig\talt_orig\tgene\ttranscript\tc_nomen\tp_nomen\texon\tvariant_type\tlocation\teffect\tclassification\tlast_updated_by\tlast_updated_on";
 
-  AlissaMapper(HgvsService hgvsService) {
+  public AlissaMapper(HgvsService hgvsService) {
     super(hgvsService);
     classificationTranslation = new HashMap<>();
     classificationTranslation.put("BENIGN", "b");

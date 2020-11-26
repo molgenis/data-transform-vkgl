@@ -188,7 +188,13 @@ public class MySpringBootRouter extends RouteBuilder {
         .split().body()
         .to("direct:validate");
 
+    from("direct:map_data")
+        .split().body()
+        .process().exchange(genericMapper::mapData)
+        .to("direct:hgvs2vcf");
+
     from("file:src/test/inbox/")
+        .routeId("createOutputFile")
         .bean(FileCreator.class, "createOutputFile(\"result/vkgl_\"${file:name.noext}\".tsv\"," +
             VKGL_HEADERS + ")")
         .choice().when(simple("${header.CamelFileName} contains 'radboud'"))
@@ -196,8 +202,6 @@ public class MySpringBootRouter extends RouteBuilder {
             RADBOUD_HEADERS.split("\t"))).otherwise()
         .unmarshal(new CsvDataFormat().setDelimiter('\t').setUseMaps(true))
         .end()
-        .split().body()
-        .process().exchange(genericMapper::mapData)
-        .to("direct:hgvs2vcf");
+        .to("direct:map_data").id("mapData");
   }
 }
