@@ -57,7 +57,7 @@ public class MyFirstCamelTest extends CamelTestSupport {
 
   @Test
   @Parameters(method = "parametersForOutputHeader")
-  void testOutputHeader(String inputFileName, String outputFileName, String expectedHeader)
+  public void testOutputHeader(String inputFileName, String outputFileName, String expectedHeader)
       throws Exception {
     MockEndpoint result = getMockEndpoint("mock:output");
     File inputFile = getInputFile(inputFileName);
@@ -74,6 +74,7 @@ public class MyFirstCamelTest extends CamelTestSupport {
     FileUtils.copyFile(inputFile, new File(
         "src" + File.separator + "test" + File.separator + "inbox" + File.separator
             + inputFileName));
+    result.setResultWaitTime(20000);
     result.assertIsSatisfied();
     String header = getHeader(FileUtils.getFile("result", outputFileName));
     assert (header.equals(expectedHeader));
@@ -107,6 +108,7 @@ public class MyFirstCamelTest extends CamelTestSupport {
     FileUtils.copyFile(inputFile, new File(
         "src" + File.separator + "test" + File.separator + "inbox" + File.separator
             + "test_alissa.txt"));
+    result.setResultWaitTime(20000);
     result.assertIsSatisfied();
     String header = getHeader(FileUtils.getFile("result", "vkgl_test_alissa.tsv"));
     assert (header.equals(
