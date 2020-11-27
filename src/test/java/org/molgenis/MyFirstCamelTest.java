@@ -57,7 +57,7 @@ public class MyFirstCamelTest extends CamelTestSupport {
 
   @Test
   @Parameters(method = "parametersForOutputHeader")
-  public void testOutputHeader(String inputFileName, String outputFileName, String expectedHeader)
+  public void testOutputHeader(String inputFileName, String outputFileName)
       throws Exception {
     MockEndpoint result = getMockEndpoint("mock:output");
     File inputFile = getInputFile(inputFileName);
@@ -71,22 +71,24 @@ public class MyFirstCamelTest extends CamelTestSupport {
           }
         });
     context.start();
-    FileUtils.copyFile(inputFile, new File(
+    File inputFileInInbox = new File(
         "src" + File.separator + "test" + File.separator + "inbox" + File.separator
-            + inputFileName));
+            + inputFileName);
+    FileUtils.copyFile(inputFile, inputFileInInbox);
     result.setResultWaitTime(20000);
     result.assertIsSatisfied();
     String header = getHeader(FileUtils.getFile("result", outputFileName));
+    String expectedHeader = "id\tchromosome\tstart\tstop\tref\talt\tgene\tc_dna\thgvs_g\thgvs_c\ttranscript\tprotein\ttype\tlocation\texon\teffect\tclassification\tcomments\tis_legacy\tlab_upload_date";
     assert (header.equals(expectedHeader));
     context.stop();
+    inputFileInInbox.delete();
   }
 
   private Object[] parametersForOutputHeader() {
     return new Object[]{
-        new Object[]{
-            "test_alissa.txt", "vkgl_test_alissa.tsv",
-            "id\tchromosome\tstart\tstop\tref\talt\tgene\tc_dna\thgvs_g\thgvs_c\ttranscript\tprotein\ttype\tlocation\texon\teffect\tclassification\tcomments\tis_legacy\tlab_upload_date"
-        }
+        new Object[]{"test_alissa.txt", "vkgl_test_alissa.tsv"},
+        new Object[]{"test_lumc.tsv", "vkgl_test_lumc.tsv"},
+        new Object[]{"test_radboud_mumc.tsv", "vkgl_test_radboud_mumc.tsv"}
     };
   }
 
@@ -105,15 +107,17 @@ public class MyFirstCamelTest extends CamelTestSupport {
           }
         });
     context.start();
-    FileUtils.copyFile(inputFile, new File(
+    File alissaInput = new File(
         "src" + File.separator + "test" + File.separator + "inbox" + File.separator
-            + "test_alissa.txt"));
+            + "test_alissa.txt");
+    FileUtils.copyFile(inputFile, alissaInput);
     result.setResultWaitTime(20000);
     result.assertIsSatisfied();
     String header = getHeader(FileUtils.getFile("result", "vkgl_test_alissa.tsv"));
     assert (header.equals(
         "id\tchromosome\tstart\tstop\tref\talt\tgene\tc_dna\thgvs_g\thgvs_c\ttranscript\tprotein\ttype\tlocation\texon\teffect\tclassification\tcomments\tis_legacy\tlab_upload_date"));
     context.stop();
+    alissaInput.delete();
   }
 
 }
