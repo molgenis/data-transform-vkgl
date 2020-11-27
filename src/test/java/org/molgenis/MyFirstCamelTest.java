@@ -71,7 +71,9 @@ public class MyFirstCamelTest extends CamelTestSupport {
           }
         });
     context.start();
-    FileUtils.copyFile(inputFile, new File("src/test/inbox/" + inputFileName));
+    FileUtils.copyFile(inputFile, new File(
+        "src" + File.separator + "test" + File.separator + "inbox" + File.separator
+            + inputFileName));
     result.assertIsSatisfied();
     String header = getHeader(FileUtils.getFile("result", outputFileName));
     assert (header.equals(expectedHeader));
@@ -102,7 +104,9 @@ public class MyFirstCamelTest extends CamelTestSupport {
           }
         });
     context.start();
-    FileUtils.copyFile(inputFile, new File("src/test/inbox/test_alissa.txt"));
+    FileUtils.copyFile(inputFile, new File(
+        "src" + File.separator + "test" + File.separator + "inbox" + File.separator
+            + "test_alissa.txt"));
     result.assertIsSatisfied();
     String header = getHeader(FileUtils.getFile("result", "vkgl_test_alissa.tsv"));
     assert (header.equals(
