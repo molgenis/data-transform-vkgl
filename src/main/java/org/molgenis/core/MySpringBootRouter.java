@@ -8,6 +8,7 @@ import static org.molgenis.mappers.AlissaMapper.ALISSA_HEADERS;
 import static org.molgenis.mappers.LumcMapper.LUMC_HEADERS;
 import static org.molgenis.mappers.RadboudMumcMapper.RADBOUD_HEADERS;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import org.apache.camel.Exchange;
@@ -193,10 +194,11 @@ public class MySpringBootRouter extends RouteBuilder {
         .process().exchange(genericMapper::mapData)
         .to("direct:hgvs2vcf");
 
-    from("file:src/test/inbox/")
+    from("file:src" + File.separator + "test" + File.separator + "inbox" + File.separator)
         .routeId("createOutputFile")
-        .bean(FileCreator.class, "createOutputFile(\"result/vkgl_\"${file:name.noext}\".tsv\"," +
-            VKGL_HEADERS + ")")
+        .bean(FileCreator.class,
+            "createOutputFile(\"result" + File.separator + "vkgl_\"${file:name.noext}\".tsv\"," +
+                VKGL_HEADERS + ")")
         .choice().when(simple("${header.CamelFileName} contains 'radboud'"))
         .unmarshal(new CsvDataFormat().setDelimiter('\t').setUseMaps(true).setHeader(
             RADBOUD_HEADERS.split("\t"))).otherwise()
