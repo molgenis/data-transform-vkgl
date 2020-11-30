@@ -5,46 +5,30 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
-import org.apache.camel.RoutesBuilder;
+import org.apache.camel.CamelContext;
+import org.apache.camel.EndpointInject;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
-import org.apache.camel.test.junit4.CamelTestSupport;
+import org.apache.camel.test.spring.CamelSpringBootRunner;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.molgenis.core.MySpringBootRouter;
-import org.molgenis.mappers.AlissaMapper;
-import org.molgenis.mappers.AlissaVkglTableMapper;
-import org.molgenis.mappers.GenericDataMapper;
-import org.molgenis.mappers.LumcMapper;
-import org.molgenis.mappers.LumcVkglTableMapper;
-import org.molgenis.mappers.RadboudMumcMapper;
-import org.molgenis.mappers.RadboudMumcVkglTableMapper;
-import org.molgenis.utils.HgvsService;
-import org.molgenis.validators.ReferenceSequenceValidator;
-import org.molgenis.validators.UniquenessChecker;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
-@RunWith(JUnitParamsRunner.class)
-public class MyFirstCamelTest extends CamelTestSupport {
+@RunWith(CamelSpringBootRunner.class)
+@SpringBootTest(classes = MySpringBootRouter.class)
+public class MyFirstCamelTest {
 
-  @Override
-  protected RoutesBuilder createRouteBuilder() throws Exception {
-    HgvsService hgvsService = new HgvsService();
-    AlissaMapper alissaMapper = new AlissaMapper(hgvsService);
-    LumcMapper lumcMapper = new LumcMapper(hgvsService);
-    RadboudMumcMapper radboudMumcMapper = new RadboudMumcMapper(hgvsService);
-    ReferenceSequenceValidator refValidator = new ReferenceSequenceValidator();
-    GenericDataMapper genericMapper = new GenericDataMapper(alissaMapper, lumcMapper,
-        radboudMumcMapper);
-    AlissaVkglTableMapper alissaTableMapper = new AlissaVkglTableMapper();
-    RadboudMumcVkglTableMapper radboudMumcTableMapper = new RadboudMumcVkglTableMapper();
-    LumcVkglTableMapper lumcTableMapper = new LumcVkglTableMapper();
-    UniquenessChecker uniquenessChecker = new UniquenessChecker();
-    return new MySpringBootRouter(refValidator, genericMapper, alissaTableMapper,
-        radboudMumcTableMapper, lumcTableMapper, uniquenessChecker);
-  }
+  @EndpointInject(uri = MOCK_RESULT)
+  private MockEndpoint resultEndpoint;
+
+  @Autowired
+  private CamelContext camelContext;
+
+  private static final String MOCK_RESULT = "mock:output";
+  private static final String MOCK_VKGL = "direct:map_data";
 
   private File getInputFile(String name) throws URISyntaxException, IOException {
     return FileUtils.getFile("src", "test", "resources", name);
@@ -55,69 +39,45 @@ public class MyFirstCamelTest extends CamelTestSupport {
     return br.readLine();
   }
 
-  @Test
-  @Parameters(method = "parametersForOutputHeader")
-  public void testOutputHeader(String inputFileName, String outputFileName)
-      throws Exception {
-    MockEndpoint result = getMockEndpoint("mock:output");
+  private void testHeader(String inputFileName, String outputFileName) throws Exception {
     File inputFile = getInputFile(inputFileName);
-    context.getRouteDefinition("createOutputFile")
-        .adviceWith(context, new AdviceWithRouteBuilder() {
+
+    camelContext.getRouteDefinition("outputFileRoute")
+        .adviceWith(camelContext, new AdviceWithRouteBuilder() {
           @Override
           public void configure() throws Exception {
-            interceptSendToEndpoint("direct:map_data")
+            interceptSendToEndpoint(MOCK_VKGL)
                 .skipSendToOriginalEndpoint()
-                .to("mock:output");
+                .to(MOCK_RESULT);
           }
         });
-    context.start();
-    File inputFileInInbox = new File(
+    camelContext.start();
+    File testInput = new File(
         "src" + File.separator + "test" + File.separator + "inbox" + File.separator
             + inputFileName);
-    FileUtils.copyFile(inputFile, inputFileInInbox);
-    result.setResultWaitTime(20000);
-    result.assertIsSatisfied();
+    FileUtils.copyFile(inputFile, testInput);
+    resultEndpoint.setResultWaitTime(20000);
+    resultEndpoint.assertIsSatisfied();
     String header = getHeader(FileUtils.getFile("result", outputFileName));
-    String expectedHeader = "id\tchromosome\tstart\tstop\tref\talt\tgene\tc_dna\thgvs_g\thgvs_c\ttranscript\tprotein\ttype\tlocation\texon\teffect\tclassification\tcomments\tis_legacy\tlab_upload_date";
-    assert (header.equals(expectedHeader));
-    context.stop();
-    inputFileInInbox.delete();
-  }
-
-  private Object[] parametersForOutputHeader() {
-    return new Object[]{
-        new Object[]{"test_alissa.txt", "vkgl_test_alissa.tsv"},
-        new Object[]{"test_lumc.tsv", "vkgl_test_lumc.tsv"},
-        new Object[]{"test_radboud_mumc.tsv", "vkgl_test_radboud_mumc.tsv"}
-    };
+    assert (header.equals(
+        "id\tchromosome\tstart\tstop\tref\talt\tgene\tc_dna\thgvs_g\thgvs_c\ttranscript\tprotein\ttype\tlocation\texon\teffect\tclassification\tcomments\tis_legacy\tlab_upload_date"));
+    resultEndpoint.expectedBodiesReceived(1);
+    camelContext.stop();
+    testInput.delete();
   }
 
   @Test
   public void testAlissaHeader() throws Exception {
-    MockEndpoint result = getMockEndpoint("mock:output");
-    File inputFile = getInputFile("test_alissa.txt");
-
-    context.getRouteDefinition("createOutputFile")
-        .adviceWith(context, new AdviceWithRouteBuilder() {
-          @Override
-          public void configure() throws Exception {
-            interceptSendToEndpoint("direct:map_data")
-                .skipSendToOriginalEndpoint()
-                .to("mock:output");
-          }
-        });
-    context.start();
-    File alissaInput = new File(
-        "src" + File.separator + "test" + File.separator + "inbox" + File.separator
-            + "test_alissa.txt");
-    FileUtils.copyFile(inputFile, alissaInput);
-    result.setResultWaitTime(20000);
-    result.assertIsSatisfied();
-    String header = getHeader(FileUtils.getFile("result", "vkgl_test_alissa.tsv"));
-    assert (header.equals(
-        "id\tchromosome\tstart\tstop\tref\talt\tgene\tc_dna\thgvs_g\thgvs_c\ttranscript\tprotein\ttype\tlocation\texon\teffect\tclassification\tcomments\tis_legacy\tlab_upload_date"));
-    context.stop();
-    alissaInput.delete();
+    testHeader("test_alissa.txt", "vkgl_test_alissa.tsv");
   }
 
+  @Test
+  public void testRadboudMumcHeader() throws Exception {
+    testHeader("test_radboud_mumc.tsv", "vkgl_test_radboud_mumc.tsv");
+  }
+
+  @Test
+  public void testLumcHeader() throws Exception {
+    testHeader("test_lumc.tsv", "vkgl_test_lumc.tsv");
+  }
 }
