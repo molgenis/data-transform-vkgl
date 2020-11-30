@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import org.apache.camel.CamelContext;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
@@ -30,7 +29,7 @@ public class MyFirstCamelTest {
   private static final String MOCK_RESULT = "mock:output";
   private static final String MOCK_VKGL = "direct:map_data";
 
-  private File getInputFile(String name) throws URISyntaxException, IOException {
+  private File getInputFile(String name) {
     return FileUtils.getFile("src", "test", "resources", name);
   }
 
@@ -45,7 +44,7 @@ public class MyFirstCamelTest {
     camelContext.getRouteDefinition("outputFileRoute")
         .adviceWith(camelContext, new AdviceWithRouteBuilder() {
           @Override
-          public void configure() throws Exception {
+          public void configure() {
             interceptSendToEndpoint(MOCK_VKGL)
                 .skipSendToOriginalEndpoint()
                 .to(MOCK_RESULT);
