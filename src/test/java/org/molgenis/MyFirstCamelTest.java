@@ -27,7 +27,6 @@ public class MyFirstCamelTest {
   private CamelContext camelContext;
 
   private static final String MOCK_RESULT = "mock:output";
-  private static final String MOCK_VKGL = "direct:map_data";
 
   private File getInputFile(String name) {
     return FileUtils.getFile("src", "test", "resources", name);
@@ -45,7 +44,7 @@ public class MyFirstCamelTest {
         .adviceWith(camelContext, new AdviceWithRouteBuilder() {
           @Override
           public void configure() {
-            interceptSendToEndpoint(MOCK_VKGL)
+            interceptSendToEndpoint("direct:map_data")
                 .skipSendToOriginalEndpoint()
                 .to(MOCK_RESULT);
           }
@@ -57,11 +56,11 @@ public class MyFirstCamelTest {
     FileUtils.copyFile(inputFile, testInput);
     resultEndpoint.setResultWaitTime(20000);
     resultEndpoint.assertIsSatisfied();
+    resultEndpoint.expectedBodiesReceived(1);
+    camelContext.stop();
     String header = getHeader(FileUtils.getFile("result", outputFileName));
     assert (header.equals(
         "id\tchromosome\tstart\tstop\tref\talt\tgene\tc_dna\thgvs_g\thgvs_c\ttranscript\tprotein\ttype\tlocation\texon\teffect\tclassification\tcomments\tis_legacy\tlab_upload_date"));
-    resultEndpoint.expectedBodiesReceived(1);
-    camelContext.stop();
     testInput.delete();
   }
 
