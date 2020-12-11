@@ -32,7 +32,7 @@ public class MySpringBootRouter extends RouteBuilder {
 
   public static final String ROUTE_NAME = "VKGL_ROUTE";
 
-  private static final int FILE_COMPLETION_TIMEOUT = 60000;
+  private static final int FILE_COMPLETION_TIMEOUT = 5000;
   private static final int DEFAULT_TIMEOUT = 1000;
   private static final int COMPLETION_SIZE = 1000;
   private static final String VCF_HEADERS = "hgvs_normalized_vkgl\tchrom\tpos\tref\talt\ttype\tsignificance";
@@ -165,9 +165,11 @@ public class MySpringBootRouter extends RouteBuilder {
 
     from("direct:check_unique")
         .routeId("checkUniqueRoute")
+        .to("log:check_unique")
         .aggregate(header(FILE_NAME))
         .strategy(groupedBody())
         .completionTimeout(FILE_COMPLETION_TIMEOUT)
+        .to("log:check_unique_agg")
         .process(uniquenessChecker::getUniqueVariants)
         .split().body()
         .choice()
@@ -194,6 +196,7 @@ public class MySpringBootRouter extends RouteBuilder {
         .json(Jackson)
         .setHeader(HTTP_METHOD, constant("POST"))
         .to("https4://variants.molgenis.org/h2v?keep_left_anchor=True&strict=True")
+        .id("variantFormatter")
         .unmarshal()
         .json(Jackson)
         .to("log:httpresponse");

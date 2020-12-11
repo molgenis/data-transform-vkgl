@@ -1,0 +1,134 @@
+[
+  {
+    "chrom": "19",
+    "pos": 501743,
+    "ref": "T",
+    "alt": "TCCTCCCGACACCACCTCCCAGGAGCCTCCCGACACCACCTCCCAGGAG",
+    "type": "ins"
+  },
+  {
+    "chrom": "19",
+    "pos": 13318672,
+    "ref": "C",
+    "alt": "CCTG",
+    "type": "dup"
+  },
+  {
+    "chrom": "17",
+    "pos": 11887518,
+    "ref": "GA",
+    "alt": "G",
+    "type": "del"
+  },
+  {
+    "chrom": "19",
+    "pos": 47249351,
+    "ref": "AGGCCG",
+    "alt": "A",
+    "type": "del"
+  },
+  {
+    "chrom": "2",
+    "pos": 179523776,
+    "ref": "AC",
+    "alt": "AA",
+    "type": "sub"
+  },
+  {
+    "chrom": "17",
+    "pos": 29592302,
+    "ref": "TAC",
+    "alt": "TTTG",
+    "type": "delins"
+  },
+  {
+    "chrom": "7",
+    "pos": 100549978,
+    "ref": "ACAT",
+    "alt": "A",
+    "type": "del"
+  },
+  {
+    "error": "Cannot validate sequence of an intronic variant (NM_001267550.1:c.96311-20\":\")"
+  },
+  {
+    "chrom": "1",
+    "pos": 160109408,
+    "ref": "A",
+    "alt": "AC",
+    "type": "dup"
+  },
+  {
+    "error": "base start position must be <\":\" end position"
+  },
+  {
+    "chrom": "1",
+    "pos": 45805879,
+    "ref": "AG",
+    "alt": "AA",
+    "type": "sub"
+  },
+  {
+    "chrom": "19",
+    "pos": 13335546,
+    "ref": "GTGT",
+    "alt": "GG",
+    "type": "delins"
+  },
+  {
+    "chrom": "X",
+    "pos": 153421825,
+    "ref": "GCGC",
+    "alt": "GG",
+    "type": "delins"
+  },
+  {
+    "chrom": "11",
+    "pos": 47365033,
+    "ref": "CA",
+    "alt": "CGAC",
+    "type": "delins"
+  },
+  {
+    "chrom": "1",
+    "pos": 156084955,
+    "ref": "GG",
+    "alt": "GCC",
+    "type": "delins"
+  },
+  {
+    "chrom": "19",
+    "pos": 1220465,
+    "ref": "CGG",
+    "alt": "CT",
+    "type": "delins"
+  },
+  {
+    "chrom": "2",
+    "pos": 189923630,
+    "ref": "ATT",
+    "alt": "A",
+    "type": "del"
+  },
+  {
+    "chrom": "18",
+    "pos": 21123536,
+    "ref": "TA",
+    "alt": "T",
+    "type": "del"
+  },
+  {
+    "chrom": "18",
+    "pos": 21123536,
+    "ref": "TA",
+    "alt": "T",
+    "type": "del"
+  },
+  {
+    "chrom": "18",
+    "pos": 21123536,
+    "ref": "TA",
+    "alt": "T",
+    "type": "del"
+  }
+]

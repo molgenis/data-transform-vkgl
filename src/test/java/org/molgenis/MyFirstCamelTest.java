@@ -2,22 +2,29 @@ package org.molgenis;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import org.apache.camel.CamelContext;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.spring.CamelSpringBootRunner;
+import org.apache.camel.test.spring.DisableJmx;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.molgenis.core.MySpringBootRouter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 
 @RunWith(CamelSpringBootRunner.class)
 @SpringBootTest(classes = MySpringBootRouter.class)
+@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
+@DisableJmx
 public class MyFirstCamelTest {
 
   @EndpointInject(uri = MOCK_RESULT)
@@ -56,7 +63,7 @@ public class MyFirstCamelTest {
     FileUtils.copyFile(inputFile, testInput);
     resultEndpoint.setResultWaitTime(20000);
     resultEndpoint.assertIsSatisfied();
-    resultEndpoint.expectedBodiesReceived(1);
+    resultEndpoint.expectedMessageCount(1);
     camelContext.stop();
     String header = getHeader(FileUtils.getFile("result", outputFileName));
     assert (header.equals(
@@ -77,5 +84,37 @@ public class MyFirstCamelTest {
   @Test
   public void testLumcHeader() throws Exception {
     testHeader("test_lumc.tsv", "vkgl_test_lumc.tsv");
+  }
+
+  @Test
+  public void testRoute() throws Exception {
+    File inputFile = getInputFile("test_alissa.txt");
+    InputStream mockResponse = new FileInputStream("src/test/resources/alissa_mock.json");
+
+    camelContext.getRouteDefinition("h2vRoute")
+        .adviceWith(camelContext, new AdviceWithRouteBuilder() {
+          @Override
+          public void configure() {
+            weaveById("variantFormatter")
+                .replace().setBody(constant(mockResponse));
+          }
+        });
+    camelContext.getRouteDefinition("writeResultRoute")
+        .adviceWith(camelContext, new AdviceWithRouteBuilder() {
+          @Override
+          public void configure() throws Exception {
+            weaveAddLast().to("mock:output");
+          }
+        });
+    camelContext.start();
+    File testInput = new File(
+        "src" + File.separator + "test" + File.separator + "inbox" + File.separator
+            + "test_alissa.txt");
+    FileUtils.copyFile(inputFile, testInput);
+    resultEndpoint.setResultWaitTime(120000);
+    resultEndpoint.expectedMessageCount(15);
+    resultEndpoint.assertIsSatisfied();
+    camelContext.stop();
+    testInput.delete();
   }
 }
