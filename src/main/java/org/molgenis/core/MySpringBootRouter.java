@@ -165,11 +165,9 @@ public class MySpringBootRouter extends RouteBuilder {
 
     from("direct:check_unique")
         .routeId("checkUniqueRoute")
-        .to("log:check_unique")
         .aggregate(header(FILE_NAME))
         .strategy(groupedBody())
         .completionTimeout(FILE_COMPLETION_TIMEOUT)
-        .to("log:check_unique_agg")
         .process(uniquenessChecker::getUniqueVariants)
         .split().body()
         .choice()

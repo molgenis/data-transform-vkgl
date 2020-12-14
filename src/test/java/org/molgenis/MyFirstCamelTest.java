@@ -15,6 +15,7 @@ import org.apache.camel.test.spring.DisableJmx;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.molgenis.core.MySpringBootRouter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -90,6 +91,7 @@ public class MyFirstCamelTest {
   public void testRoute() throws Exception {
     File inputFile = getInputFile("test_alissa.txt");
     InputStream mockResponse = new FileInputStream("src/test/resources/alissa_mock.json");
+    MockEndpoint errorEndpoint = camelContext.getEndpoint("mock:error", MockEndpoint.class);
 
     camelContext.getRouteDefinition("h2vRoute")
         .adviceWith(camelContext, new AdviceWithRouteBuilder() {
@@ -106,12 +108,20 @@ public class MyFirstCamelTest {
             weaveAddLast().to("mock:output");
           }
         });
+    camelContext.getRouteDefinition("writeErrorRoute")
+        .adviceWith(camelContext, new AdviceWithRouteBuilder() {
+          @Override
+          public void configure() throws Exception {
+            weaveAddLast().to("mock:error");
+          }
+        });
     camelContext.start();
     File testInput = new File(
         "src" + File.separator + "test" + File.separator + "inbox" + File.separator
             + "test_alissa.txt");
     FileUtils.copyFile(inputFile, testInput);
     resultEndpoint.setResultWaitTime(120000);
+    errorEndpoint.expectedMessageCount(3);
     resultEndpoint.expectedMessageCount(15);
     resultEndpoint.assertIsSatisfied();
     camelContext.stop();
