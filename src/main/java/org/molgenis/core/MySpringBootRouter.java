@@ -112,7 +112,7 @@ public class MySpringBootRouter extends RouteBuilder {
         .recipientList(simple("direct:write-${header.labType}-error"));
 
     from("direct:marshal-alissa-result")
-        .routeId("marschalAlissaRoute")
+        .routeId("marshalAlissaRoute")
         .marshal(new CsvDataFormat().setDelimiter('\t')
             .setHeader(getSplittedHeaders(ALISSA_HEADERS, VCF_HEADERS)))
         .to(resultFile);

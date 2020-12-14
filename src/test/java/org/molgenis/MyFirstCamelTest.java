@@ -15,7 +15,6 @@ import org.apache.camel.test.spring.DisableJmx;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.molgenis.core.MySpringBootRouter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -92,7 +91,9 @@ public class MyFirstCamelTest {
     File inputFile = getInputFile("test_alissa.txt");
     InputStream mockResponse = new FileInputStream("src/test/resources/alissa_mock.json");
     MockEndpoint errorEndpoint = camelContext.getEndpoint("mock:error", MockEndpoint.class);
+    MockEndpoint alissaEndpoint = camelContext.getEndpoint("mock:alissa", MockEndpoint.class);
 
+    // Mock the api response
     camelContext.getRouteDefinition("h2vRoute")
         .adviceWith(camelContext, new AdviceWithRouteBuilder() {
           @Override
@@ -101,6 +102,7 @@ public class MyFirstCamelTest {
                 .replace().setBody(constant(mockResponse));
           }
         });
+    // Add mock endpoint after resultRoute to test messages are received
     camelContext.getRouteDefinition("writeResultRoute")
         .adviceWith(camelContext, new AdviceWithRouteBuilder() {
           @Override
@@ -108,6 +110,7 @@ public class MyFirstCamelTest {
             weaveAddLast().to("mock:output");
           }
         });
+    // Add mock endpoint after errorRoute to test messages are received
     camelContext.getRouteDefinition("writeErrorRoute")
         .adviceWith(camelContext, new AdviceWithRouteBuilder() {
           @Override
@@ -115,6 +118,15 @@ public class MyFirstCamelTest {
             weaveAddLast().to("mock:error");
           }
         });
+    // Add mock endpoint after marshalAlissaRoute to test whether alissa endpoint is reached
+    camelContext.getRouteDefinition("marshalAlissaRoute")
+        .adviceWith(camelContext, new AdviceWithRouteBuilder() {
+          @Override
+          public void configure() throws Exception {
+            weaveAddLast().to("mock:alissa");
+          }
+        });
+
     camelContext.start();
     File testInput = new File(
         "src" + File.separator + "test" + File.separator + "inbox" + File.separator
@@ -123,8 +135,10 @@ public class MyFirstCamelTest {
     resultEndpoint.setResultWaitTime(120000);
     errorEndpoint.expectedMessageCount(3);
     resultEndpoint.expectedMessageCount(15);
+    alissaEndpoint.expectedMessageCount(1);
     resultEndpoint.assertIsSatisfied();
+    errorEndpoint.assertIsSatisfied();
+    alissaEndpoint.assertIsSatisfied();
     camelContext.stop();
-    testInput.delete();
   }
 }
