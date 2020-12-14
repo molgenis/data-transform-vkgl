@@ -25,19 +25,23 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 @SpringBootTest(classes = MySpringBootRouter.class)
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 @DisableJmx
-public class MyFirstCamelTest {
+public class AppIT {
 
   @EndpointInject(uri = MOCK_RESULT)
   private MockEndpoint resultEndpoint;
+
+  @EndpointInject(uri = MOCK_ERROR)
+  private MockEndpoint errorEndpoint;
+
+  @EndpointInject(uri = MOCK_LAB)
+  private MockEndpoint labSpecificEndpoint;
 
   @Autowired
   private CamelContext camelContext;
 
   private static final String MOCK_RESULT = "mock:output";
-
-  private File getInputFile(String name) {
-    return FileUtils.getFile("src", "test", "resources", name);
-  }
+  private static final String MOCK_ERROR = "mock:error";
+  private static final String MOCK_LAB = "mock:lab";
 
   private void setMockEndpoint(String mockUri, String route) throws Exception {
     camelContext.getRouteDefinition(route)
@@ -50,16 +54,14 @@ public class MyFirstCamelTest {
   }
 
   private void testRoute(String inputFileName, String lab, String labRoute,
-      Integer correctVariants, Integer errorVariants) throws Exception {
-    File inputFile = getInputFile(inputFileName);
+      int correctVariants, int errorVariants) throws Exception {
+    File inputFile = FileUtils.getFile("src", "test", "resources", inputFileName);
     // Delete old error file if it exists (errors will be added to existing error file)
     File errorFile = FileUtils.getFile("result", "vkgl_test_" + lab + "_error.txt");
     Files.deleteIfExists(errorFile.toPath());
     InputStream mockResponse = new FileInputStream(
         "src" + File.separator + "test" + File.separator + "resources" + File.separator + lab
             + "_mock.json");
-    MockEndpoint errorEndpoint = camelContext.getEndpoint("mock:error", MockEndpoint.class);
-    MockEndpoint labSpecificEndpoint = camelContext.getEndpoint("mock:lab", MockEndpoint.class);
 
     // Mock the api response
     camelContext.getRouteDefinition("h2vRoute")
@@ -71,11 +73,11 @@ public class MyFirstCamelTest {
           }
         });
     // Add mock endpoint after resultRoute to test messages are received
-    setMockEndpoint("mock:output", "writeResultRoute");
+    setMockEndpoint(MOCK_RESULT, "writeResultRoute");
     // Add mock endpoint after errorRoute to test messages are received
-    setMockEndpoint("mock:error", "writeErrorRoute");
+    setMockEndpoint(MOCK_ERROR, "writeErrorRoute");
     // Add mock endpoint after labRoute to test whether correct lab endpoint is reached
-    setMockEndpoint("mock:lab", labRoute);
+    setMockEndpoint(MOCK_LAB, labRoute);
 
     camelContext.start();
     File testInput = new File(

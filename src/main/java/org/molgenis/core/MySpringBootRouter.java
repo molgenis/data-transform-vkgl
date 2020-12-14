@@ -21,6 +21,7 @@ import org.molgenis.mappers.RadboudMumcVkglTableMapper;
 import org.molgenis.utils.FileCreator;
 import org.molgenis.validators.ReferenceSequenceValidator;
 import org.molgenis.validators.UniquenessChecker;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
@@ -32,7 +33,8 @@ public class MySpringBootRouter extends RouteBuilder {
 
   public static final String ROUTE_NAME = "VKGL_ROUTE";
 
-  private static final int FILE_COMPLETION_TIMEOUT = 5000;
+  @Value("${completion.timeout}")
+  private int FILE_COMPLETION_TIMEOUT;
   private static final int DEFAULT_TIMEOUT = 1000;
   private static final int COMPLETION_SIZE = 1000;
   private static final String VCF_HEADERS = "hgvs_normalized_vkgl\tchrom\tpos\tref\talt\ttype\tsignificance";
