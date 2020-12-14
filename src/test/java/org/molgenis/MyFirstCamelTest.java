@@ -87,6 +87,16 @@ public class MyFirstCamelTest {
     testHeader("test_lumc.tsv", "vkgl_test_lumc.tsv");
   }
 
+  private void setMockEndpoint(String mockUri, String route) throws Exception {
+    camelContext.getRouteDefinition(route)
+        .adviceWith(camelContext, new AdviceWithRouteBuilder() {
+          @Override
+          public void configure() throws Exception {
+            weaveAddLast().to(mockUri);
+          }
+        });
+  }
+
   private void testRoute(String inputFileName, String lab, String labRoute,
       Integer correctVariants, Integer errorVariants) throws Exception {
     File inputFile = getInputFile(inputFileName);
@@ -107,29 +117,11 @@ public class MyFirstCamelTest {
           }
         });
     // Add mock endpoint after resultRoute to test messages are received
-    camelContext.getRouteDefinition("writeResultRoute")
-        .adviceWith(camelContext, new AdviceWithRouteBuilder() {
-          @Override
-          public void configure() throws Exception {
-            weaveAddLast().to("mock:output");
-          }
-        });
+    setMockEndpoint("mock:output", "writeResultRoute");
     // Add mock endpoint after errorRoute to test messages are received
-    camelContext.getRouteDefinition("writeErrorRoute")
-        .adviceWith(camelContext, new AdviceWithRouteBuilder() {
-          @Override
-          public void configure() throws Exception {
-            weaveAddLast().to("mock:error");
-          }
-        });
-    // Add mock endpoint after labRoute to test whether alissa endpoint is reached
-    camelContext.getRouteDefinition(labRoute)
-        .adviceWith(camelContext, new AdviceWithRouteBuilder() {
-          @Override
-          public void configure() throws Exception {
-            weaveAddLast().to("mock:lab");
-          }
-        });
+    setMockEndpoint("mock:error", "writeErrorRoute");
+    // Add mock endpoint after labRoute to test whether correct lab endpoint is reached
+    setMockEndpoint("mock:lab", labRoute);
 
     camelContext.start();
     File testInput = new File(
