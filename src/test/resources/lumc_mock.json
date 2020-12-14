@@ -1,0 +1,23 @@
+[
+  {
+    "chrom": "13",
+    "pos": 32914766,
+    "ref": "CTT",
+    "alt": "C",
+    "type": "del"
+  },
+  {
+    "chrom": "X",
+    "pos": 153599549,
+    "ref": "T",
+    "alt": "TCGA",
+    "type": "dup"
+  },
+  {
+    "chrom": "1",
+    "pos": 17355217,
+    "ref": "AA",
+    "alt": "AG",
+    "type": "sub"
+  }
+]

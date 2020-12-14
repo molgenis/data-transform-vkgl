@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import org.apache.camel.CamelContext;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
@@ -86,12 +87,15 @@ public class MyFirstCamelTest {
     testHeader("test_lumc.tsv", "vkgl_test_lumc.tsv");
   }
 
-  @Test
-  public void testRoute() throws Exception {
-    File inputFile = getInputFile("test_alissa.txt");
-    InputStream mockResponse = new FileInputStream("src/test/resources/alissa_mock.json");
+  private void testRoute(String inputFileName, String lab, String labRoute,
+      Integer correctVariants, Integer errorVariants) throws Exception {
+    File inputFile = getInputFile(inputFileName);
+    // Delete old error file if it exists (errors will be added to existing error file)
+    File errorFile = new File("result/vkgl_test_" + lab + "_error.txt");
+    Files.deleteIfExists(errorFile.toPath());
+    InputStream mockResponse = new FileInputStream("src/test/resources/" + lab + "_mock.json");
     MockEndpoint errorEndpoint = camelContext.getEndpoint("mock:error", MockEndpoint.class);
-    MockEndpoint alissaEndpoint = camelContext.getEndpoint("mock:alissa", MockEndpoint.class);
+    MockEndpoint labSpecificEndpoint = camelContext.getEndpoint("mock:lab", MockEndpoint.class);
 
     // Mock the api response
     camelContext.getRouteDefinition("h2vRoute")
@@ -118,27 +122,42 @@ public class MyFirstCamelTest {
             weaveAddLast().to("mock:error");
           }
         });
-    // Add mock endpoint after marshalAlissaRoute to test whether alissa endpoint is reached
-    camelContext.getRouteDefinition("marshalAlissaRoute")
+    // Add mock endpoint after labRoute to test whether alissa endpoint is reached
+    camelContext.getRouteDefinition(labRoute)
         .adviceWith(camelContext, new AdviceWithRouteBuilder() {
           @Override
           public void configure() throws Exception {
-            weaveAddLast().to("mock:alissa");
+            weaveAddLast().to("mock:lab");
           }
         });
 
     camelContext.start();
     File testInput = new File(
         "src" + File.separator + "test" + File.separator + "inbox" + File.separator
-            + "test_alissa.txt");
+            + inputFileName);
     FileUtils.copyFile(inputFile, testInput);
-    resultEndpoint.setResultWaitTime(120000);
-    errorEndpoint.expectedMessageCount(3);
-    resultEndpoint.expectedMessageCount(15);
-    alissaEndpoint.expectedMessageCount(1);
+    resultEndpoint.setResultWaitTime(30000);
+    errorEndpoint.expectedMessageCount(errorVariants);
+    resultEndpoint.expectedMessageCount(correctVariants);
+    labSpecificEndpoint.expectedMessageCount(1);
     resultEndpoint.assertIsSatisfied();
     errorEndpoint.assertIsSatisfied();
-    alissaEndpoint.assertIsSatisfied();
+    labSpecificEndpoint.assertIsSatisfied();
     camelContext.stop();
+  }
+
+  @Test
+  public void testAlissaRoute() throws Exception {
+    testRoute("test_alissa.txt", "alissa", "marshalAlissaRoute", 15, 3);
+  }
+
+  @Test
+  public void testLumcRoute() throws Exception {
+    testRoute("test_lumc.tsv", "lumc", "marshalLumcRoute", 3, 0);
+  }
+
+  @Test
+  public void testRadboudMumcRoute() throws Exception {
+    testRoute("test_radboud_mumc.tsv", "radboud_mumc", "marshalRadboudRoute", 4, 0);
   }
 }

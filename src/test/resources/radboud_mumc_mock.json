@@ -1,0 +1,30 @@
+[
+  {
+    "chrom": "5",
+    "pos": 1279429,
+    "ref": "GC",
+    "alt": "GT",
+    "type": "sub"
+  },
+  {
+    "chrom": "13",
+    "pos": 52548139,
+    "ref": "GA",
+    "alt": "GC",
+    "type": "sub"
+  },
+  {
+    "chrom": "11",
+    "pos": 47353825,
+    "ref": "AGAGAGGGAGGGAAGCCATCCAGGCT",
+    "alt": "A",
+    "type": "del"
+  },
+  {
+    "chrom": "2",
+    "pos": 179428546,
+    "ref": "T",
+    "alt": "TTACC",
+    "type": "dup"
+  }
+]
