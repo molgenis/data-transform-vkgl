@@ -34,7 +34,7 @@ public class MySpringBootRouter extends RouteBuilder {
   public static final String ROUTE_NAME = "VKGL_ROUTE";
 
   @Value("${completion.timeout}")
-  private int FILE_COMPLETION_TIMEOUT;
+  private int fileCompletionTimeout;
   private static final int DEFAULT_TIMEOUT = 1000;
   private static final int COMPLETION_SIZE = 1000;
   private static final String VCF_HEADERS = "hgvs_normalized_vkgl\tchrom\tpos\tref\talt\ttype\tsignificance";
@@ -169,7 +169,7 @@ public class MySpringBootRouter extends RouteBuilder {
         .routeId("checkUniqueRoute")
         .aggregate(header(FILE_NAME))
         .strategy(groupedBody())
-        .completionTimeout(FILE_COMPLETION_TIMEOUT)
+        .completionTimeout(fileCompletionTimeout)
         .process(uniquenessChecker::getUniqueVariants)
         .split().body()
         .choice()
