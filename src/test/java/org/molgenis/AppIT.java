@@ -80,19 +80,31 @@ public class AppIT {
     setMockEndpoint(MOCK_LAB, labRoute);
 
     camelContext.start();
+
+    // Copy inputfile to input folder to start the camel route
     File testInput = new File(
         "src" + File.separator + "test" + File.separator + "inbox" + File.separator
             + inputFileName);
     FileUtils.copyFile(inputFile, testInput);
+
+    // If tests succeed within 30 seconds, tests will continue
     resultEndpoint.setResultWaitTime(30000);
-    errorEndpoint.expectedMessageCount(errorVariants);
+    errorEndpoint.setResultWaitTime(30000);
+    labSpecificEndpoint.setResultWaitTime(30000);
+
+    // Assert the number of messages received by each route
     resultEndpoint.expectedMessageCount(correctVariants);
+    errorEndpoint.expectedMessageCount(errorVariants);
     labSpecificEndpoint.expectedMessageCount(1);
+
+    // Assert all endpoints are satisfied
     resultEndpoint.assertIsSatisfied();
     errorEndpoint.assertIsSatisfied();
     labSpecificEndpoint.assertIsSatisfied();
+
     camelContext.stop();
-    // Check if output files look like expected
+
+    // Assert output file is still the same as the snapshot
     File snapshot = FileUtils.getFile("src", "test", "resources", "snapshot_" + lab + ".tsv");
     File actual = FileUtils.getFile("result", "vkgl_test_" + lab + ".tsv");
     assertTrue(FileUtils.contentEquals(snapshot, actual));
