@@ -8,6 +8,7 @@ import static org.molgenis.mappers.AlissaMapper.ALISSA_HEADERS;
 import static org.molgenis.mappers.LumcMapper.LUMC_HEADERS;
 import static org.molgenis.mappers.RadboudMumcMapper.RADBOUD_HEADERS;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import org.apache.camel.Exchange;
@@ -20,6 +21,7 @@ import org.molgenis.mappers.RadboudMumcVkglTableMapper;
 import org.molgenis.utils.FileCreator;
 import org.molgenis.validators.ReferenceSequenceValidator;
 import org.molgenis.validators.UniquenessChecker;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
@@ -29,7 +31,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class MySpringBootRouter extends RouteBuilder {
 
-  private static final int FILE_COMPLETION_TIMEOUT = 60000;
+  public static final String ROUTE_NAME = "VKGL_ROUTE";
+
+  @Value("${completion.timeout}")
+  private int fileCompletionTimeout;
   private static final int DEFAULT_TIMEOUT = 1000;
   private static final int COMPLETION_SIZE = 1000;
   private static final String VCF_HEADERS = "hgvs_normalized_vkgl\tchrom\tpos\tref\talt\ttype\tsignificance";
@@ -74,9 +79,11 @@ public class MySpringBootRouter extends RouteBuilder {
     String resultFile = "file:result";
 
     from("direct:append-error")
+        .routeId("appendErrorRoute")
         .to("file:result?fileName=vkgl_${file:name.noext}_error.txt&fileExist=Append");
 
     from("direct:write-alissa-error")
+        .routeId("alissaErrorRoute")
         .marshal(
             new CsvDataFormat()
                 .setDelimiter('\t')
@@ -85,6 +92,7 @@ public class MySpringBootRouter extends RouteBuilder {
         .to("direct:append-error");
 
     from("direct:write-radboud-error")
+        .routeId("radboudErrorRoute")
         .marshal(
             new CsvDataFormat()
                 .setDelimiter('\t')
@@ -93,6 +101,7 @@ public class MySpringBootRouter extends RouteBuilder {
         .to("direct:append-error");
 
     from("direct:write-lumc-error")
+        .routeId("lumcErrorRoute")
         .marshal(
             new CsvDataFormat()
                 .setDelimiter('\t')
@@ -101,45 +110,54 @@ public class MySpringBootRouter extends RouteBuilder {
         .to("direct:append-error");
 
     from("direct:write-error")
+        .routeId("writeErrorRoute")
         .recipientList(simple("direct:write-${header.labType}-error"));
 
     from("direct:marshal-alissa-result")
+        .routeId("marshalAlissaRoute")
         .marshal(new CsvDataFormat().setDelimiter('\t')
             .setHeader(getSplittedHeaders(ALISSA_HEADERS, VCF_HEADERS)))
         .to(resultFile);
 
     from("direct:marshal-radboud-result")
+        .routeId("marshalRadboudRoute")
         .marshal(new CsvDataFormat().setDelimiter('\t')
             .setHeader(getSplittedHeaders(RADBOUD_HEADERS, VCF_HEADERS)))
         .to(resultFile);
 
     from("direct:marshal-lumc-result")
+        .routeId("marshalLumcRoute")
         .marshal(new CsvDataFormat().setDelimiter('\t')
             .setHeader(getSplittedHeaders(LUMC_HEADERS, VCF_HEADERS)))
         .to(resultFile);
 
     from("direct:marshal-vkgl-result")
+        .routeId("marshalVkglRoute")
         .marshal(new CsvDataFormat().setDelimiter('\t')
             .setHeader((VKGL_HEADERS).split("\t"))
             .setHeaderDisabled(true))
         .to("file:result?fileName=vkgl_${file:name.noext}.tsv&fileExist=Append");
 
     from("direct:map-alissa-result")
+        .routeId("mapAlissaRoute")
         .split().body()
         .process().body(Map.class, alissaTableMapper::mapLine)
         .to("direct:marshal-vkgl-result");
 
     from("direct:map-lumc-result")
+        .routeId("mapLumcRoute")
         .split().body()
         .process().body(Map.class, lumcTableMapper::mapLine)
         .to("direct:marshal-vkgl-result");
 
     from("direct:map-radboud-result")
+        .routeId("mapRaboudRoute")
         .split().body()
         .process().body(Map.class, radboudMumcTableMapper::mapLine)
         .to("direct:marshal-vkgl-result");
 
     from("direct:write-result")
+        .routeId("writeResultRoute")
         .aggregate(header(FILE_NAME))
         .strategy(groupedBody())
         .completionTimeout(DEFAULT_TIMEOUT)
@@ -148,9 +166,10 @@ public class MySpringBootRouter extends RouteBuilder {
             "direct:marshal-${header.labType}-result,direct:map-${header.labType}-result"));
 
     from("direct:check_unique")
+        .routeId("checkUniqueRoute")
         .aggregate(header(FILE_NAME))
         .strategy(groupedBody())
-        .completionTimeout(FILE_COMPLETION_TIMEOUT)
+        .completionTimeout(fileCompletionTimeout)
         .process(uniquenessChecker::getUniqueVariants)
         .split().body()
         .choice()
@@ -163,11 +182,13 @@ public class MySpringBootRouter extends RouteBuilder {
         .end();
 
     from("direct:validate")
+        .routeId("validateRoute")
         .process()
         .body(Map.class, refValidator::validateOriginalRef)
         .to("direct:check_unique");
 
     from("direct:h2v")
+        .routeId("h2vRoute")
         .to("log:httprequest")
         .transform()
         .jsonpath("$[*].hgvs_normalized_vkgl")
@@ -175,11 +196,13 @@ public class MySpringBootRouter extends RouteBuilder {
         .json(Jackson)
         .setHeader(HTTP_METHOD, constant("POST"))
         .to("https4://variants.molgenis.org/h2v?keep_left_anchor=True&strict=True")
+        .id("variantFormatter")
         .unmarshal()
         .json(Jackson)
         .to("log:httpresponse");
 
     from("direct:hgvs2vcf")
+        .routeId("vcfRoute")
         .description("Validates the normalized gDNA.")
         .aggregate(header(FILE_NAME), groupedBody())
         .completionSize(COMPLETION_SIZE)
@@ -188,16 +211,22 @@ public class MySpringBootRouter extends RouteBuilder {
         .split().body()
         .to("direct:validate");
 
-    from("file:src/test/inbox/")
-        .bean(FileCreator.class, "createOutputFile(\"result/vkgl_\"${file:name.noext}\".tsv\"," +
-            VKGL_HEADERS + ")")
+    from("direct:map_data")
+        .routeId("mappingRoute")
+        .split().body()
+        .process().exchange(genericMapper::mapData)
+        .to("direct:hgvs2vcf");
+
+    from("file:src" + File.separator + "test" + File.separator + "inbox" + File.separator)
+        .routeId("outputFileRoute")
+        .bean(FileCreator.class,
+            "createOutputFile(\"result" + File.separator + "vkgl_\"${file:name.noext}\".tsv\"," +
+                VKGL_HEADERS + ")")
         .choice().when(simple("${header.CamelFileName} contains 'radboud'"))
         .unmarshal(new CsvDataFormat().setDelimiter('\t').setUseMaps(true).setHeader(
             RADBOUD_HEADERS.split("\t"))).otherwise()
         .unmarshal(new CsvDataFormat().setDelimiter('\t').setUseMaps(true))
         .end()
-        .split().body()
-        .process().exchange(genericMapper::mapData)
-        .to("direct:hgvs2vcf");
+        .to("direct:map_data");
   }
 }

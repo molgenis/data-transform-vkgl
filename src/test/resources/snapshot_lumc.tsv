@@ -1,0 +1,4 @@
+id	chromosome	start	stop	ref	alt	gene	c_dna	hgvs_g	hgvs_c	transcript	protein	type	location	exon	effect	classification	comments	is_legacy	lab_upload_date
+08b4c05690dd870cbf69ed4e6cd981cba4d0cf87a931b2d512d9d683d6cd58c7	X	153599549	153599549	T	TCGA	FLNA	c.64_65insTCG, NM_001456.3	NC_000023.10:g.153599552_153599554dup		NM_001110556.1	NP_001104026.1:p.(Val21dup), NP_001447.2:p.(Val21dup)	dup				lb			
+c38b295863e9e97ec6c0abb6b54f2ad19657b76b31a25a6420d6de8c2de6ce05	13	32914766	32914768	CTT	C	BRCA2	c.6275_6276del	NC_000013.10:g.32914767_32914768del		NM_000059.3	NP_000050.2:p.(Leu2092ProfsTer7)	del				p			
+022835a03c0779f32914f36c5701175a3d96bc3c3240471f7ac8aacf9a341b9a	1	17355218	17355218	A	G	SDHB	c.300T>C	NC_000001.10:g.17355218A>G		NM_003000.2	NP_002991.2:p.(=)	sub				lb			

@@ -1,0 +1,2 @@
+ignore:
+  - "src/main/java/org/molgenis/core/MySpringBootRouter.java" #Ignore spring boot router because codecov doesnt understand how the camel code is tested

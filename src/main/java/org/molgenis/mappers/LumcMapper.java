@@ -10,7 +10,7 @@ public class LumcMapper extends InputDataMapper {
 
   public static final String LUMC_HEADERS = "refseq_build\tchromosome\thgvs_normalized\tvariant_effect\tgeneid\tcDNA\tProtein";
 
-  LumcMapper(HgvsService hgvsService) {
+  public LumcMapper(HgvsService hgvsService) {
     super(hgvsService);
     classificationTranslation = new HashMap<>();
     classificationTranslation.put("-", "b");
