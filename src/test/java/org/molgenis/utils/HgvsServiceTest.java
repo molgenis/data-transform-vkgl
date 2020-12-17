@@ -19,11 +19,21 @@ public class HgvsServiceTest {
   }
 
   @Test
-  void getHgvsGInsertionWrittenAsIndelTest() {
+  void getHgvsGInsertionWrittenAsIndelTest1() {
     String actual = hgvsService
         .getHgvsG("T", "CT", "chr1", 160109411,
             160109412);
     assertEquals("NC_000001.10:g.160109410_160109411insC",
+        actual,
+        "Hgvs is created for insertion with correct position");
+  }
+
+  @Test
+  void getHgvsGInsertionWrittenAsIndelTest2() {
+    String actual = hgvsService
+        .getHgvsG("A", "AA", "chr1", 103381185,
+            103381185);
+    assertEquals("NC_000001.10:g.103381184_103381185insA",
         actual,
         "Hgvs is created for insertion with correct position");
   }

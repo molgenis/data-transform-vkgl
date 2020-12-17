@@ -89,12 +89,12 @@ public class HgvsService {
 
   private String getHgvsGForInsertions(String ref, String alt, int start, String transcript) {
     if (!ref.equals(".")) {
-      if (alt.charAt(0) == ref.charAt(0)) {
-        alt = alt.substring(1);
-        start = start + 1;
-      } else if (alt.charAt(alt.length() - 1) == ref.charAt(0)) {
+      if (alt.charAt(alt.length() - 1) == ref.charAt(0)) {
         alt = alt.substring(0, alt.length() - 1);
         start = start - 1;
+      } else if (alt.charAt(0) == ref.charAt(0)) {
+        alt = alt.substring(1);
+        start = start + 1;
       } else {
         int stop = start;
         return getHgvsGForDelIns(transcript, Integer.toString(start), alt,
