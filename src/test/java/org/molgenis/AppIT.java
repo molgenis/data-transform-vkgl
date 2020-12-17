@@ -112,7 +112,7 @@ public class AppIT {
 
   @Test
   public void testAlissaRoute() throws Exception {
-    testRoute("test_alissa.txt", "alissa", "marshalAlissaRoute", 15, 3);
+    testRoute("test_alissa.txt", "alissa", "marshalAlissaRoute", 16, 3);
   }
 
   @Test

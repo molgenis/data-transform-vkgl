@@ -130,5 +130,12 @@
     "ref": "TA",
     "alt": "T",
     "type": "del"
+  },
+  {
+    "chrom": "1",
+    "pos": 103381184,
+    "ref": "T",
+    "alt": "TA",
+    "type": "dup"
   }
 ]
