@@ -9,6 +9,7 @@ import static org.molgenis.mappers.LumcMapper.LUMC_HEADERS;
 import static org.molgenis.mappers.RadboudMumcMapper.RADBOUD_HEADERS;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import org.apache.camel.Exchange;
@@ -19,6 +20,8 @@ import org.molgenis.mappers.GenericDataMapper;
 import org.molgenis.mappers.LumcVkglTableMapper;
 import org.molgenis.mappers.RadboudMumcVkglTableMapper;
 import org.molgenis.utils.FileCreator;
+import org.molgenis.utils.HgncFile;
+import org.molgenis.validators.GeneValidationService;
 import org.molgenis.validators.ReferenceSequenceValidator;
 import org.molgenis.validators.UniquenessChecker;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +43,7 @@ public class MySpringBootRouter extends RouteBuilder {
   private static final String VCF_HEADERS = "hgvs_normalized_vkgl\tchrom\tpos\tref\talt\ttype\tsignificance";
   private static final String ERROR_HEADERS = "hgvs_normalized_vkgl\tcdna_patched\terror";
   private static final String VKGL_HEADERS = "id\tchromosome\tstart\tstop\tref\talt\tgene\tc_dna\thgvs_g\thgvs_c\ttranscript\tprotein\ttype\tlocation\texon\teffect\tclassification\tcomments\tis_legacy\tlab_upload_date";
+  private static final String HGNC_FILE_LOCATION = "src/main/resources/hgnc_genes.tsv";
 
   private final ReferenceSequenceValidator refValidator;
   private final GenericDataMapper genericMapper;
@@ -47,17 +51,21 @@ public class MySpringBootRouter extends RouteBuilder {
   private final RadboudMumcVkglTableMapper radboudMumcTableMapper;
   private final LumcVkglTableMapper lumcTableMapper;
   private final UniquenessChecker uniquenessChecker;
+  private final GeneValidationService geneValidationService;
 
   public MySpringBootRouter(ReferenceSequenceValidator refValidator,
       GenericDataMapper genericMapper, AlissaVkglTableMapper alissaTableMapper,
       RadboudMumcVkglTableMapper radboudMumcTableMapper,
-      LumcVkglTableMapper lumcTableMapper, UniquenessChecker uniquenessChecker) {
+      LumcVkglTableMapper lumcTableMapper, UniquenessChecker uniquenessChecker) throws IOException {
     this.refValidator = refValidator;
     this.genericMapper = genericMapper;
     this.alissaTableMapper = alissaTableMapper;
     this.radboudMumcTableMapper = radboudMumcTableMapper;
     this.lumcTableMapper = lumcTableMapper;
     this.uniquenessChecker = uniquenessChecker;
+    HgncFile hgncFile = new HgncFile(HGNC_FILE_LOCATION);
+    this.geneValidationService = new GeneValidationService(hgncFile.getGenes(),
+        hgncFile.getAlternativeGeneNames());
   }
 
   private Exchange mergeLists(Exchange variantExchange, Exchange responseExchange) {
@@ -167,9 +175,6 @@ public class MySpringBootRouter extends RouteBuilder {
 
     from("direct:check_unique")
         .routeId("checkUniqueRoute")
-        .aggregate(header(FILE_NAME))
-        .strategy(groupedBody())
-        .completionTimeout(fileCompletionTimeout)
         .process(uniquenessChecker::getUniqueVariants)
         .split().body()
         .choice()
@@ -185,6 +190,10 @@ public class MySpringBootRouter extends RouteBuilder {
         .routeId("validateRoute")
         .process()
         .body(Map.class, refValidator::validateOriginalRef)
+        .aggregate(header(FILE_NAME))
+        .strategy(groupedBody())
+        .completionTimeout(fileCompletionTimeout)
+        .process(geneValidationService::getVariantsWithCorrectGenes)
         .to("direct:check_unique");
 
     from("direct:h2v")

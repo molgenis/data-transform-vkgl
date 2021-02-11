@@ -1,7 +1,10 @@
 package org.molgenis.validators;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import org.apache.camel.Exchange;
 import org.molgenis.utils.InvalidGeneException;
 
 public class GeneValidationService {
@@ -44,7 +47,7 @@ public class GeneValidationService {
     return this.getGeneAlternatives().get(gene.toLowerCase());
   }
 
-  public String getValidatedGene(String gene) throws InvalidGeneException {
+  protected String getValidatedGene(String gene) throws InvalidGeneException {
     if (this.getGenes().containsKey(gene)) {
       if (this.isValidGene(gene)) {
         return gene;
@@ -60,5 +63,26 @@ public class GeneValidationService {
         throw new InvalidGeneException("No valid gene symbol can be found for: " + gene);
       }
     }
+  }
+
+  List<Map<String, String>> getVariantsWithCorrectGenesList(List<Map<String, String>> body) {
+    List<Map<String, String>> validatedList = new ArrayList<>();
+    for (Map<String, String> variant : body) {
+      String gene = variant.get("gene");
+      try {
+        String validatedGene = getValidatedGene(gene);
+        variant.put("validated_gene", validatedGene);
+      } catch (InvalidGeneException ex) {
+        variant.put("ERROR", ex.toString());
+      }
+      validatedList.add(variant);
+    }
+    return validatedList;
+  }
+
+  public void getVariantsWithCorrectGenes(Exchange exchange) {
+    List<Map<String, String>> body = exchange.getIn().getBody(List.class);
+    List<Map<String, String>> listOfUniqueVariants = getVariantsWithCorrectGenesList(body);
+    exchange.getIn().setBody(listOfUniqueVariants);
   }
 }
