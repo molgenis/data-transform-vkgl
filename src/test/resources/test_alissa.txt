@@ -20,3 +20,6 @@ timestamp	id	chromosome	start	stop	ref	alt	gene	transcript	c_nomen	p_nomen	exon	
 2019-12-03T01:05:38+0100	aaaac3wlu3kfj6qwh3zn4qiaaq	18	21123537	21123538	AA	A	NPC1	NM_000271.4	c.2131-4delT	NULL	14	deletion	intronic	NULL	BENIGN	anonymous	2019-08-23 15:03:17
 2019-12-03T01:05:38+0100	aaaac3wlu3kfj6qwh3zn4qiaay	18	21123537	21123539	AAA	AA	NPC1	NM_000271.4	c.2131-4delT	NULL	14	deletion	intronic	NULL	LIKELY_BENIGN	anonymous	2019-08-23 15:03:17
 2019-12-03T01:05:38+0100	aaaac3wlu3kfj6qwh3zn43iaay	1	103381185	103381185	A	AA	COL11A1	NM_001854.3	  	NULL	14	insertion	intronic	NULL	PATHOGENIC	anonymous	2019-08-23 15:03:17
+2021-01-20T10:33:02Z	aaaac5y7llkp36qwh3zn4qiaga	17	75493387	75493387	C	T	SEPT9	NM_006640.4	c.1520-10C>T	NULL	10	snp	intronic	NULL	BENIGN	anonymous	2018-07-30 09:04:14
+2021-01-20T10:33:02Z	aaaac5y7llkp56qwh3zn4qiaam	17	75494731	75494731	G	A	Sep-09	NM_006640.4	c.1698G>A	p.P566=	11	snp	exonic	synonymous	BENIGN	anonymous	2019-08-16 15:17:24
+2021-01-20T10:33:02Z	aaaac5y7llkp56qwh3zn4ddiaam	9	118163563	118163563	C	T	1/12/2001	NM_017418.2	c.179C>T	p.A60V		snp	exonic	synonymous	BENIGN	anonymous	2019-08-16 15:17:24

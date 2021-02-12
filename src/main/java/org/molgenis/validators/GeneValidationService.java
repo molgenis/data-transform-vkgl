@@ -11,6 +11,7 @@ public class GeneValidationService {
 
   private static final String STATUS = "status";
   private static final String APPROVED = "approved";
+  private static final String ERROR = "error";
 
   Map<String, HashMap<String, String>> genes;
   Map<String, String> geneAlternatives;
@@ -71,9 +72,10 @@ public class GeneValidationService {
       String gene = variant.get("gene");
       try {
         String validatedGene = getValidatedGene(gene);
-        variant.put("validated_gene", validatedGene);
+        variant.put("gene_orig", gene);
+        variant.put("gene", validatedGene);
       } catch (InvalidGeneException ex) {
-        variant.put("ERROR", ex.toString());
+        variant.put(ERROR, ex.getMessage());
       }
       validatedList.add(variant);
     }
