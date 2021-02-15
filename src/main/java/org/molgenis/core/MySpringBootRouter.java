@@ -40,7 +40,7 @@ public class MySpringBootRouter extends RouteBuilder {
   private int fileCompletionTimeout;
   private static final int DEFAULT_TIMEOUT = 1000;
   private static final int COMPLETION_SIZE = 1000;
-  private static final String VCF_HEADERS = "hgvs_normalized_vkgl\tchrom\tpos\tref\talt\ttype\tsignificance";
+  private static final String VCF_HEADERS = "hgvs_normalized_vkgl\tgene\tchrom\tpos\tref\talt\ttype\tsignificance";
   private static final String ERROR_HEADERS = "hgvs_normalized_vkgl\tcdna_patched\terror";
   private static final String VKGL_HEADERS = "id\tchromosome\tstart\tstop\tref\talt\tgene\tc_dna\thgvs_g\thgvs_c\ttranscript\tprotein\ttype\tlocation\texon\teffect\tclassification\tcomments\tis_legacy\tlab_upload_date";
   private static final String HGNC_FILE_LOCATION = "src/main/resources/hgnc_genes.tsv";

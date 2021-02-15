@@ -69,10 +69,9 @@ public class GeneValidationService {
   List<Map<String, String>> getVariantsWithCorrectGenesList(List<Map<String, String>> body) {
     List<Map<String, String>> validatedList = new ArrayList<>();
     for (Map<String, String> variant : body) {
-      String gene = variant.get("gene");
+      String gene = variant.get("gene_orig");
       try {
         String validatedGene = getValidatedGene(gene);
-        variant.put("gene_orig", gene);
         variant.put("gene", validatedGene);
       } catch (InvalidGeneException ex) {
         variant.put(ERROR, ex.getMessage());
