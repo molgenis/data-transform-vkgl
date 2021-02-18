@@ -21,7 +21,7 @@ import org.molgenis.mappers.LumcVkglTableMapper;
 import org.molgenis.mappers.RadboudMumcVkglTableMapper;
 import org.molgenis.utils.FileCreator;
 import org.molgenis.utils.HgncFile;
-import org.molgenis.validators.GeneValidationService;
+import org.molgenis.validators.HgncGeneValidator;
 import org.molgenis.validators.ReferenceSequenceValidator;
 import org.molgenis.validators.UniquenessChecker;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,7 +51,7 @@ public class MySpringBootRouter extends RouteBuilder {
   private final RadboudMumcVkglTableMapper radboudMumcTableMapper;
   private final LumcVkglTableMapper lumcTableMapper;
   private final UniquenessChecker uniquenessChecker;
-  private final GeneValidationService geneValidationService;
+  private final HgncGeneValidator geneValidationService;
 
   public MySpringBootRouter(ReferenceSequenceValidator refValidator,
       GenericDataMapper genericMapper, AlissaVkglTableMapper alissaTableMapper,
@@ -64,7 +64,7 @@ public class MySpringBootRouter extends RouteBuilder {
     this.lumcTableMapper = lumcTableMapper;
     this.uniquenessChecker = uniquenessChecker;
     HgncFile hgncFile = new HgncFile(HGNC_FILE_LOCATION);
-    this.geneValidationService = new GeneValidationService(hgncFile.getGenes(),
+    this.geneValidationService = new HgncGeneValidator(hgncFile.getGenes(),
         hgncFile.getAlternativeGeneNames());
   }
 

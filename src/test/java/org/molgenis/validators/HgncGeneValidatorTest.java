@@ -7,15 +7,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.molgenis.utils.InvalidGeneException;
 
-class GeneValidationServiceTest {
+class HgncGeneValidatorTest {
 
-  GeneValidationService service = new GeneValidationService(getGenes(), getGeneAlternatives());
+  HgncGeneValidator service = new HgncGeneValidator(getGenes(), getGeneAlternatives());
 
-  private static HashMap<String, String> getGeneAlternatives() {
-    HashMap<String, String> geneAlternatives = new HashMap<>();
+  private static Map<String, String> getGeneAlternatives() {
+    Map<String, String> geneAlternatives = new HashMap<>();
     //previous NCRNA00181
     geneAlternatives.put("ncrna00181", "A1BG-AS1");
     //alias FLJ23569
@@ -35,9 +36,9 @@ class GeneValidationServiceTest {
     return geneAlternatives;
   }
 
-  private static HashMap<String, String> getGeneInfo(String hgncId, String status,
+  private static Map<String, String> getGeneInfo(String hgncId, String status,
       String approvedSymbol, String chromosome) {
-    HashMap<String, String> geneInfo = new HashMap<>();
+    Map<String, String> geneInfo = new HashMap<>();
     geneInfo.put("hgnc_id", hgncId);
     geneInfo.put("status", status);
     geneInfo.put("approved_symbol", approvedSymbol);
@@ -45,8 +46,8 @@ class GeneValidationServiceTest {
     return geneInfo;
   }
 
-  private static HashMap<String, HashMap<String, String>> getGenes() {
-    HashMap<String, HashMap<String, String>> genes = new HashMap<>();
+  private static Map<String, Map<String, String>> getGenes() {
+    Map<String, Map<String, String>> genes = new HashMap<>();
     genes.put("A1BG-AS1", getGeneInfo("HGNC:37133", "Approved", "A1BG-AS1", "19"));
     genes.put("ABCB5", getGeneInfo("HGNC:46", "Approved", "ABCB5", "7"));
     genes.put("ABCB6", getGeneInfo("HGNC:47", "Approved", "ABCB6", "2"));

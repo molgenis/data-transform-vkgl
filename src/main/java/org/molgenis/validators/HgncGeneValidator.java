@@ -1,22 +1,21 @@
 package org.molgenis.validators;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.camel.Exchange;
 import org.molgenis.utils.InvalidGeneException;
 
-public class GeneValidationService {
+public class HgncGeneValidator {
 
   private static final String STATUS = "status";
   private static final String APPROVED = "approved";
   private static final String ERROR = "error";
 
-  Map<String, HashMap<String, String>> genes;
+  Map<String, Map<String, String>> genes;
   Map<String, String> geneAlternatives;
 
-  private Map<String, HashMap<String, String>> getGenes() {
+  private Map<String, Map<String, String>> getGenes() {
     return genes;
   }
 
@@ -24,13 +23,13 @@ public class GeneValidationService {
     return geneAlternatives;
   }
 
-  private void setInput(Map<String, HashMap<String, String>> genes,
+  private void setInput(Map<String, Map<String, String>> genes,
       Map<String, String> geneAlternatives) {
     this.genes = genes;
     this.geneAlternatives = geneAlternatives;
   }
 
-  public GeneValidationService(Map<String, HashMap<String, String>> genes,
+  public HgncGeneValidator(Map<String, Map<String, String>> genes,
       Map<String, String> geneAlternatives) {
     this.setInput(genes, geneAlternatives);
   }
@@ -40,7 +39,7 @@ public class GeneValidationService {
   }
 
   protected String getGeneStatus(String gene) {
-    HashMap<String, String> geneInfo = this.getGenes().get(gene);
+    Map<String, String> geneInfo = this.getGenes().get(gene);
     return geneInfo.get(STATUS).toLowerCase();
   }
 

@@ -24,7 +24,8 @@ class GenericDataMapperTest {
   @Test
   void getTypeRadboudTest() {
     Set<String> set = new HashSet<>(Arrays
-        .asList("chromosome_orig", "start", "stop", "ref_orig", "alt_orig", "gene", "transcript",
+        .asList("chromosome_orig", "start", "stop", "ref_orig", "alt_orig", "gene_orig",
+            "transcript",
             "protein", "empty1", "exon", "empty2", "classification"));
     assertEquals("radboud", getType(set));
   }

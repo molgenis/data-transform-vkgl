@@ -3,9 +3,9 @@ package org.molgenis.utils;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class HgncFileTest {
@@ -16,10 +16,11 @@ class HgncFileTest {
   }
 
   @Test
-  void getGenes() throws IOException {
-    Map<String, HashMap<String, String>> genes = hgncFile.getGenes();
-    HashSet<String> actualGeneSymbols = new HashSet<>(genes.keySet());
-    HashSet<String> expectedGeneSymbols = new HashSet<>();
+  void getGenes() {
+    Map<String, Map<String, String>> genes = hgncFile.getGenes();
+    Set<String> actualGeneSymbols = new HashSet<>(genes.keySet());
+    Set<String> expectedGeneSymbols;
+    expectedGeneSymbols = new HashSet<>();
     expectedGeneSymbols.add("A1BG");
     expectedGeneSymbols.add("A1BG-AS1");
     expectedGeneSymbols.add("A1CF");
@@ -56,8 +57,8 @@ class HgncFileTest {
   @Test
   void getAlternativeGeneNames() {
     Map<String, String> alternativeGeneNames = hgncFile.getAlternativeGeneNames();
-    HashSet<String> actualAlternatives = new HashSet<>(alternativeGeneNames.keySet());
-    HashSet<String> expectedAlternatives = new HashSet<>();
+    Set<String> actualAlternatives = new HashSet<>(alternativeGeneNames.keySet());
+    Set<String> expectedAlternatives = new HashSet<>();
     expectedAlternatives.add("flj23569");
     expectedAlternatives.add("ncrna00181");
     expectedAlternatives.add("a1bgas");

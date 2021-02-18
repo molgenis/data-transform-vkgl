@@ -4,6 +4,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -17,9 +21,9 @@ public class HgncFile {
   private static final String SEPARATOR = "\t";
   private static final String EMPTY = "";
 
-  private HashMap<String, Integer> headerPositions;
-  private HashMap<String, String> alternativeGeneNames;
-  private HashMap<String, HashMap<String, String>> genes;
+  private Map<String, Integer> headerPositions;
+  private Map<String, String> alternativeGeneNames;
+  private Map<String, Map<String, String>> genes;
 
   public HgncFile(String geneFilePath) throws IOException {
     this.setAlternativeGeneNames(new HashMap<>());
@@ -28,15 +32,15 @@ public class HgncFile {
     this.getGeneData(geneFilePath);
   }
 
-  public Map<String, HashMap<String, String>> getGenes() {
+  public Map<String, Map<String, String>> getGenes() {
     return this.genes;
   }
 
-  private void setGenes(HashMap<String, HashMap<String, String>> genes) {
+  private void setGenes(Map<String, Map<String, String>> genes) {
     this.genes = genes;
   }
 
-  private void addToGenes(HashMap<String, String> geneInfo) {
+  private void addToGenes(Map<String, String> geneInfo) {
     this.genes.put(geneInfo.get(SYMBOL), geneInfo);
   }
 
@@ -44,7 +48,7 @@ public class HgncFile {
     return this.headerPositions;
   }
 
-  private void setHeaderPositions(HashMap<String, Integer> headerPositions) {
+  private void setHeaderPositions(Map<String, Integer> headerPositions) {
     this.headerPositions = headerPositions;
   }
 
@@ -60,7 +64,7 @@ public class HgncFile {
     this.alternativeGeneNames.put(alternative.toLowerCase(), original);
   }
 
-  private void setAlternativeGeneNames(HashMap<String, String> alternativeGeneNames) {
+  private void setAlternativeGeneNames(Map<String, String> alternativeGeneNames) {
     this.alternativeGeneNames = alternativeGeneNames;
   }
 
@@ -74,9 +78,9 @@ public class HgncFile {
     }
   }
 
-  private void getGeneData(String geneFilePath) throws IOException {
-    File geneFile = new File(geneFilePath);
-    try (BufferedReader br = new BufferedReader(new FileReader(geneFile))) {
+  private void getGeneData(String geneFilePathLocation) throws IOException {
+    Path geneFilePath = Paths.get(geneFilePathLocation);
+    try (BufferedReader br = Files.newBufferedReader(geneFilePath, StandardCharsets.UTF_8)) {
       String header = br.readLine();
       this.setHeaderPositions(header);
 
@@ -85,7 +89,7 @@ public class HgncFile {
         List<String> geneInfo = Arrays.asList(line.split(SEPARATOR, -1));
         String gene = geneInfo.get(this.getHeaderPositions().get(SYMBOL));
         if (!this.getGenes().containsKey(gene)) {
-          HashMap<String, String> geneProps = new HashMap<>();
+          Map<String, String> geneProps = new HashMap<>();
 
           for (Map.Entry<String, Integer> stringIntegerEntry : this.getHeaderPositions()
               .entrySet()) {
