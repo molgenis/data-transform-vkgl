@@ -18,21 +18,21 @@ class HgncGeneValidatorTest {
   private static Map<String, String> getGeneAlternatives() {
     Map<String, String> geneAlternatives = new HashMap<>();
     //previous NCRNA00181
-    geneAlternatives.put("ncrna00181", "A1BG-AS1");
+    geneAlternatives.put("ncrna00181", "a1bg-as1");
     //alias FLJ23569
-    geneAlternatives.put("flj23569", "A1BG-AS1");
+    geneAlternatives.put("flj23569", "a1bg-as1");
     //alias ABCB5alpha
-    geneAlternatives.put("abcb5alpha", "ABCB5");
+    geneAlternatives.put("abcb5alpha", "abcb5");
     //alias
-    geneAlternatives.put("umat", "ABCB6");
+    geneAlternatives.put("umat", "abcb6");
     //alias bA453N3.6
-    geneAlternatives.put("ba453n3.6", "ABCD1P2");
+    geneAlternatives.put("ba453n3.6", "abcd1p2");
     //alias Em:AC012044.1
-    geneAlternatives.put("em:ac012044.1", "AGAP4");
+    geneAlternatives.put("em:ac012044.1", "agap4");
     //previous IGHV2@
-    geneAlternatives.put("ighv2@", "IGHVOR15@");
+    geneAlternatives.put("ighv2@", "ighvor15@");
     //alias IGHV
-    geneAlternatives.put("ighv", "IGHVOR15@");
+    geneAlternatives.put("ighv", "ighvor15@");
     return geneAlternatives;
   }
 
@@ -48,13 +48,13 @@ class HgncGeneValidatorTest {
 
   private static Map<String, Map<String, String>> getGenes() {
     Map<String, Map<String, String>> genes = new HashMap<>();
-    genes.put("A1BG-AS1", getGeneInfo("HGNC:37133", "Approved", "A1BG-AS1", "19"));
-    genes.put("ABCB5", getGeneInfo("HGNC:46", "Approved", "ABCB5", "7"));
-    genes.put("ABCB6", getGeneInfo("HGNC:47", "Approved", "ABCB6", "2"));
-    genes.put("ABCD1P2", getGeneInfo("HGNC:63", "Approved", "ABCD1P2", "10"));
-    genes.put("AGAP4", getGeneInfo("HGNC:23459", "Approved", "AGAP4", "10"));
-    genes.put("ACAD", getGeneInfo("HGNC:86", "Entry Withdrawn", "ACAD", "NA"));
-    genes.put("IGHVOR15@", getGeneInfo("HGNC:5711", "Entry Withdrawn", "IGHVOR15@", "15"));
+    genes.put("a1bg-as1", getGeneInfo("HGNC:37133", "Approved", "A1BG-AS1", "19"));
+    genes.put("abcb5", getGeneInfo("HGNC:46", "Approved", "ABCB5", "7"));
+    genes.put("abcb6", getGeneInfo("HGNC:47", "Approved", "ABCB6", "2"));
+    genes.put("abcd1p2", getGeneInfo("HGNC:63", "Approved", "ABCD1P2", "10"));
+    genes.put("agap4", getGeneInfo("HGNC:23459", "Approved", "AGAP4", "10"));
+    genes.put("acad", getGeneInfo("HGNC:86", "Entry Withdrawn", "ACAD", "NA"));
+    genes.put("ighvor15@", getGeneInfo("HGNC:5711", "Entry Withdrawn", "IGHVOR15@", "15"));
     return genes;
   }
 

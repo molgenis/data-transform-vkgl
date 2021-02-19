@@ -8,56 +8,58 @@ import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-class HgncFileTest {
+class HgncGenesParserTest {
 
-  HgncFile hgncFile = new HgncFile("src/test/resources/hgnc_test_file.tsv");
+  HgncGenes hgncGenes = new HgncGenes();
+  HgncGenesParser hgncGenesParser = new HgncGenesParser("src/test/resources/hgnc_test_file.tsv",
+      hgncGenes);
 
-  HgncFileTest() throws IOException {
+  HgncGenesParserTest() throws IOException {
   }
 
   @Test
   void getGenes() {
-    Map<String, Map<String, String>> genes = hgncFile.getGenes();
+    Map<String, Map<String, String>> genes = hgncGenes.getGenes();
     Set<String> actualGeneSymbols = new HashSet<>(genes.keySet());
     Set<String> expectedGeneSymbols;
     expectedGeneSymbols = new HashSet<>();
-    expectedGeneSymbols.add("A1BG");
-    expectedGeneSymbols.add("A1BG-AS1");
-    expectedGeneSymbols.add("A1CF");
-    expectedGeneSymbols.add("A2M");
-    expectedGeneSymbols.add("A2M-AS1");
-    expectedGeneSymbols.add("A2ML1");
-    expectedGeneSymbols.add("A2ML1-AS1");
-    expectedGeneSymbols.add("A2ML1-AS2");
-    expectedGeneSymbols.add("A2MP1");
-    expectedGeneSymbols.add("A3GALT2");
-    expectedGeneSymbols.add("A4GALT");
-    expectedGeneSymbols.add("A4GNT");
-    expectedGeneSymbols.add("A12M1");
-    expectedGeneSymbols.add("A12M2");
-    expectedGeneSymbols.add("A12M3");
-    expectedGeneSymbols.add("A12M4");
-    expectedGeneSymbols.add("AAAS");
-    expectedGeneSymbols.add("AABT");
-    expectedGeneSymbols.add("AACS");
-    expectedGeneSymbols.add("AACSP1");
-    expectedGeneSymbols.add("AADAC");
-    expectedGeneSymbols.add("AADACL2");
-    expectedGeneSymbols.add("AADACL2-AS1");
-    expectedGeneSymbols.add("AADACL3");
-    expectedGeneSymbols.add("AADACL4");
-    expectedGeneSymbols.add("AADACP1");
-    expectedGeneSymbols.add("AADAT");
-    expectedGeneSymbols.add("AAGAB");
-    expectedGeneSymbols.add("AAK1");
-    expectedGeneSymbols.add("AAMDC");
+    expectedGeneSymbols.add("a1bg");
+    expectedGeneSymbols.add("a1bg-as1");
+    expectedGeneSymbols.add("a1cf");
+    expectedGeneSymbols.add("a2m");
+    expectedGeneSymbols.add("a2m-as1");
+    expectedGeneSymbols.add("a2ml1");
+    expectedGeneSymbols.add("a2ml1-as1");
+    expectedGeneSymbols.add("a2ml1-as2");
+    expectedGeneSymbols.add("a2mp1");
+    expectedGeneSymbols.add("a3galt2");
+    expectedGeneSymbols.add("a4galt");
+    expectedGeneSymbols.add("a4gnt");
+    expectedGeneSymbols.add("a12m1");
+    expectedGeneSymbols.add("a12m2");
+    expectedGeneSymbols.add("a12m3");
+    expectedGeneSymbols.add("a12m4");
+    expectedGeneSymbols.add("aaas");
+    expectedGeneSymbols.add("aabt");
+    expectedGeneSymbols.add("aacs");
+    expectedGeneSymbols.add("aacsp1");
+    expectedGeneSymbols.add("aadac");
+    expectedGeneSymbols.add("aadacl2");
+    expectedGeneSymbols.add("aadacl2-as1");
+    expectedGeneSymbols.add("aadacl3");
+    expectedGeneSymbols.add("aadacl4");
+    expectedGeneSymbols.add("aadacp1");
+    expectedGeneSymbols.add("aadat");
+    expectedGeneSymbols.add("aagab");
+    expectedGeneSymbols.add("aak1");
+    expectedGeneSymbols.add("aamdc");
     assertEquals(expectedGeneSymbols, actualGeneSymbols);
   }
 
   @Test
   void getAlternativeGeneNames() {
-    Map<String, String> alternativeGeneNames = hgncFile.getAlternativeGeneNames();
-    Set<String> actualAlternatives = new HashSet<>(alternativeGeneNames.keySet());
+    Map<String, String> previousGeneAliases = hgncGenes.getPreviousGeneAliases();
+    Set<String> actualAlternatives = new HashSet<>(previousGeneAliases.keySet());
     Set<String> expectedAlternatives = new HashSet<>();
     expectedAlternatives.add("flj23569");
     expectedAlternatives.add("ncrna00181");

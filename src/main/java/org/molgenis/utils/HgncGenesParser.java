@@ -1,8 +1,6 @@
 package org.molgenis.utils;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -13,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class HgncFile {
+public class HgncGenesParser {
 
   private static final String PREVIOUS = "previous_symbol";
   private static final String ALIAS = "alias_symbol";
@@ -21,53 +19,22 @@ public class HgncFile {
   private static final String SEPARATOR = "\t";
   private static final String EMPTY = "";
 
-  private Map<String, Integer> headerPositions;
-  private Map<String, String> alternativeGeneNames;
-  private Map<String, Map<String, String>> genes;
+  private final Map<String, Integer> headerPositions = new HashMap<>();
 
-  public HgncFile(String geneFilePath) throws IOException {
-    this.setAlternativeGeneNames(new HashMap<>());
-    this.setHeaderPositions(new HashMap<>());
-    this.setGenes(new HashMap<>());
+  HgncGenes hgncGenes;
+
+  public HgncGenesParser(String geneFilePath, HgncGenes hgncGenes) throws IOException {
+    this.hgncGenes = hgncGenes;
     this.getGeneData(geneFilePath);
-  }
-
-  public Map<String, Map<String, String>> getGenes() {
-    return this.genes;
-  }
-
-  private void setGenes(Map<String, Map<String, String>> genes) {
-    this.genes = genes;
-  }
-
-  private void addToGenes(Map<String, String> geneInfo) {
-    this.genes.put(geneInfo.get(SYMBOL), geneInfo);
   }
 
   private Map<String, Integer> getHeaderPositions() {
     return this.headerPositions;
   }
 
-  private void setHeaderPositions(Map<String, Integer> headerPositions) {
-    this.headerPositions = headerPositions;
-  }
-
   private void addToHeaderPositions(String header, Integer position) {
     this.headerPositions.put(header, position);
   }
-
-  public Map<String, String> getAlternativeGeneNames() {
-    return this.alternativeGeneNames;
-  }
-
-  private void addToAlternativeGeneName(String alternative, String original) {
-    this.alternativeGeneNames.put(alternative.toLowerCase(), original);
-  }
-
-  private void setAlternativeGeneNames(Map<String, String> alternativeGeneNames) {
-    this.alternativeGeneNames = alternativeGeneNames;
-  }
-
 
   private void setHeaderPositions(String header) {
     String[] columns = header.toLowerCase().replace(" ", "_").split(SEPARATOR);
@@ -88,7 +55,7 @@ public class HgncFile {
       while ((line = br.readLine()) != null) {
         List<String> geneInfo = Arrays.asList(line.split(SEPARATOR, -1));
         String gene = geneInfo.get(this.getHeaderPositions().get(SYMBOL));
-        if (!this.getGenes().containsKey(gene)) {
+        if (!this.hgncGenes.getGenes().containsKey(gene)) {
           Map<String, String> geneProps = new HashMap<>();
 
           for (Map.Entry<String, Integer> stringIntegerEntry : this.getHeaderPositions()
@@ -101,20 +68,21 @@ public class HgncFile {
               geneProps.put(stringIntegerEntry.getKey(), EMPTY);
             }
           }
-          this.addToGenes(geneProps);
+          this.hgncGenes.addToGenes(geneProps);
         }
-        addAltGeneIfNotExists(geneInfo, gene, ALIAS);
-        addAltGeneIfNotExists(geneInfo, gene, PREVIOUS);
+        addAltGene(geneInfo, gene, ALIAS);
+        addAltGene(geneInfo, gene, PREVIOUS);
       }
     }
   }
 
-  private void addAltGeneIfNotExists(List<String> geneInfo, String gene, String alt) {
+  private void addAltGene(List<String> geneInfo, String gene, String alt) {
     Integer position = this.getHeaderPositions().get(alt);
     if (geneInfo.size() > position) {
       String alternative = geneInfo.get(position);
-      if (!alternative.equals(EMPTY) && !this.getAlternativeGeneNames().containsKey(alternative)) {
-        this.addToAlternativeGeneName(alternative, gene);
+      if (!alternative.equals(EMPTY) && !this.hgncGenes.getPreviousGeneAliases()
+          .containsKey(alternative)) {
+        this.hgncGenes.addToPreviousGeneAliases(alternative, gene);
       }
     }
   }

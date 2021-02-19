@@ -20,7 +20,8 @@ import org.molgenis.mappers.GenericDataMapper;
 import org.molgenis.mappers.LumcVkglTableMapper;
 import org.molgenis.mappers.RadboudMumcVkglTableMapper;
 import org.molgenis.utils.FileCreator;
-import org.molgenis.utils.HgncFile;
+import org.molgenis.utils.HgncGenes;
+import org.molgenis.utils.HgncGenesParser;
 import org.molgenis.validators.HgncGeneValidator;
 import org.molgenis.validators.ReferenceSequenceValidator;
 import org.molgenis.validators.UniquenessChecker;
@@ -63,9 +64,10 @@ public class MySpringBootRouter extends RouteBuilder {
     this.radboudMumcTableMapper = radboudMumcTableMapper;
     this.lumcTableMapper = lumcTableMapper;
     this.uniquenessChecker = uniquenessChecker;
-    HgncFile hgncFile = new HgncFile(HGNC_FILE_LOCATION);
-    this.geneValidationService = new HgncGeneValidator(hgncFile.getGenes(),
-        hgncFile.getAlternativeGeneNames());
+    HgncGenes hgncGenes = new HgncGenes();
+    new HgncGenesParser(HGNC_FILE_LOCATION, hgncGenes);
+    this.geneValidationService = new HgncGeneValidator(hgncGenes.getGenes(),
+        hgncGenes.getPreviousGeneAliases());
   }
 
   private Exchange mergeLists(Exchange variantExchange, Exchange responseExchange) {

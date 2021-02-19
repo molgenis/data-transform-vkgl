@@ -11,22 +11,23 @@ public class HgncGeneValidator {
   private static final String STATUS = "status";
   private static final String APPROVED = "approved";
   private static final String ERROR = "error";
+  private static final String SYMBOL = "approved_symbol";
 
   Map<String, Map<String, String>> genes;
-  Map<String, String> geneAlternatives;
+  Map<String, String> previousGeneAliases;
 
   private Map<String, Map<String, String>> getGenes() {
     return genes;
   }
 
-  private Map<String, String> getGeneAlternatives() {
-    return geneAlternatives;
+  private Map<String, String> getPreviousGeneAliases() {
+    return previousGeneAliases;
   }
 
   private void setInput(Map<String, Map<String, String>> genes,
-      Map<String, String> geneAlternatives) {
+      Map<String, String> previousGeneAliases) {
     this.genes = genes;
-    this.geneAlternatives = geneAlternatives;
+    this.previousGeneAliases = previousGeneAliases;
   }
 
   public HgncGeneValidator(Map<String, Map<String, String>> genes,
@@ -35,20 +36,24 @@ public class HgncGeneValidator {
   }
 
   protected boolean isValidGene(String gene) {
-    return this.getGeneStatus(gene).equals(APPROVED);
+    return this.getGeneStatus(gene.toLowerCase()).equals(APPROVED);
   }
 
   protected String getGeneStatus(String gene) {
-    Map<String, String> geneInfo = this.getGenes().get(gene);
+    Map<String, String> geneInfo = this.getGenes().get(gene.toLowerCase());
     return geneInfo.get(STATUS).toLowerCase();
   }
 
   protected String translateGene(String gene) {
-    return this.getGeneAlternatives().get(gene.toLowerCase());
+    String translation = this.getPreviousGeneAliases().get(gene.toLowerCase());
+    if (translation != null) {
+      return this.getGenes().get(translation).get(SYMBOL);
+    }
+    return null;
   }
 
   protected String getValidatedGene(String gene) throws InvalidGeneException {
-    if (this.getGenes().containsKey(gene)) {
+    if (this.getGenes().containsKey(gene.toLowerCase())) {
       if (this.isValidGene(gene)) {
         return gene;
       } else {
