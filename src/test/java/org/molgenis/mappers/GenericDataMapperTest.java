@@ -2,19 +2,19 @@ package org.molgenis.mappers;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.molgenis.mappers.GenericDataMapper.getType;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import javax.validation.UnexpectedTypeException;
+import java.util.zip.DataFormatException;
+import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Test;
 
 class GenericDataMapperTest {
 
   @Test
-  void getTypeLumcTest() {
+  void getTypeLumcTest() throws DataFormatException {
     Set<String> set = new HashSet<>(Arrays
         .asList("refseq_build", "chromosome", "gDNA_normalized", "variant_effect", "geneid", "cDNA",
             "Protein"));
@@ -22,7 +22,7 @@ class GenericDataMapperTest {
   }
 
   @Test
-  void getTypeRadboudTest() {
+  void getTypeRadboudTest() throws DataFormatException {
     Set<String> set = new HashSet<>(Arrays
         .asList("chromosome_orig", "start", "stop", "ref_orig", "alt_orig", "gene_orig",
             "transcript",
@@ -31,7 +31,7 @@ class GenericDataMapperTest {
   }
 
   @Test
-  void getTypeAlissaTest() {
+  void getTypeAlissaTest() throws DataFormatException {
     Set<String> set = new HashSet<>(Arrays
         //timestamp	id	chromosome	start	stop	ref	alt	gene	transcript	c_nomen	p_nomen	exon	variant_type	location	effect	classification	last_updated_by	last_updated_on
         .asList("timestamp", "id", "chromosome", "start", "stop", "ref", "alt", "gene",
@@ -45,8 +45,8 @@ class GenericDataMapperTest {
     Set<String> set = new HashSet<>(Arrays.asList("my", "beautiful", "shoppinglist"));
     try {
       getType(set);
-    } catch (UnexpectedTypeException caughtException) {
-      assertThat(caughtException.getMessage(),
+    } catch (DataFormatException caughtException) {
+      MatcherAssert.assertThat(caughtException.getMessage(),
           is("Lab type not recognized, check headers with headers of alissa, radboud, and lumc"));
     }
   }

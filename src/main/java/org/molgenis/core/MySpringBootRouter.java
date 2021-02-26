@@ -2,8 +2,8 @@ package org.molgenis.core;
 
 import static org.apache.camel.Exchange.FILE_NAME;
 import static org.apache.camel.Exchange.HTTP_METHOD;
+import static org.apache.camel.builder.AggregationStrategies.groupedBody;
 import static org.apache.camel.model.dataformat.JsonLibrary.Jackson;
-import static org.apache.camel.util.toolbox.AggregationStrategies.groupedBody;
 import static org.molgenis.mappers.AlissaMapper.ALISSA_HEADERS;
 import static org.molgenis.mappers.LumcMapper.LUMC_HEADERS;
 import static org.molgenis.mappers.RadboudMumcMapper.RADBOUD_HEADERS;
@@ -205,8 +205,8 @@ public class MySpringBootRouter extends RouteBuilder {
         .jsonpath("$[*].hgvs_normalized_vkgl")
         .marshal()
         .json(Jackson)
-        .setHeader(HTTP_METHOD, constant("POST"))
-        .to("https4://variants.molgenis.org/h2v?keep_left_anchor=True&strict=True")
+        .setHeader(Exchange.HTTP_METHOD, constant(org.apache.camel.component.http.HttpMethods.POST))
+        .to("https://variants.molgenis.org/h2v?keep_left_anchor=True&strict=True")
         .id("variantFormatter")
         .unmarshal()
         .json(Jackson)
