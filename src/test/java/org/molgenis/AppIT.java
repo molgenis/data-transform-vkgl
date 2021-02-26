@@ -1,7 +1,7 @@
 package org.molgenis;
 
 import static org.apache.camel.builder.Builder.constant;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,10 +11,9 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.builder.AdviceWith;
 import org.apache.camel.component.mock.MockEndpoint;
-import org.apache.camel.test.spring.DisableJmx;
+import org.apache.camel.test.spring.junit5.CamelSpringTest;
 import org.apache.commons.io.FileUtils;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.molgenis.core.MySpringBootRouter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,12 +21,12 @@ import org.springframework.boot.test.context.SpringBootTestContextBootstrapper;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.BootstrapWith;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.ContextConfiguration;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@CamelSpringTest
+@ContextConfiguration
 @BootstrapWith(SpringBootTestContextBootstrapper.class)
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
-@DisableJmx(false)
 @SpringBootTest(classes = MySpringBootRouter.class)
 public class AppIT {
 
@@ -106,17 +105,17 @@ public class AppIT {
   }
 
   @Test
-  public void testAlissaRoute() throws Exception {
+  void testAlissaRoute() throws Exception {
     testRoute("test_alissa.txt", "alissa", "marshalAlissaRoute", 17, 5);
   }
 
   @Test
-  public void testLumcRoute() throws Exception {
+  void testLumcRoute() throws Exception {
     testRoute("test_lumc.tsv", "lumc", "marshalLumcRoute", 3, 0);
   }
 
   @Test
-  public void testRadboudMumcRoute() throws Exception {
+  void testRadboudMumcRoute() throws Exception {
     testRoute("test_radboud_mumc.tsv", "radboud_mumc", "marshalRadboudRoute", 4, 0);
   }
 }
