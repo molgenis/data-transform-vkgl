@@ -28,7 +28,7 @@ import org.springframework.test.context.ContextConfiguration;
 @BootstrapWith(SpringBootTestContextBootstrapper.class)
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 @SpringBootTest(classes = MySpringBootRouter.class)
-public class AppIT {
+class AppIT {
 
   @EndpointInject(MOCK_RESULT)
   private MockEndpoint resultEndpoint;

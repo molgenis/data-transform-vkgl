@@ -14,6 +14,7 @@ import java.util.Map;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.dataformat.csv.CsvDataFormat;
+import org.apache.camel.processor.aggregate.GroupedBodyAggregationStrategy;
 import org.molgenis.mappers.AlissaVkglTableMapper;
 import org.molgenis.mappers.GenericDataMapper;
 import org.molgenis.mappers.LumcVkglTableMapper;
@@ -34,8 +35,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class MySpringBootRouter extends RouteBuilder {
 
-  public static final String ROUTE_NAME = "VKGL_ROUTE";
-
   @Value("${completion.timeout}")
   private int fileCompletionTimeout;
   private static final int DEFAULT_TIMEOUT = 1000;
@@ -43,6 +42,7 @@ public class MySpringBootRouter extends RouteBuilder {
   private static final String VCF_HEADERS = "hgvs_normalized_vkgl\tgene\tchrom\tpos\tref\talt\ttype\tsignificance";
   private static final String ERROR_HEADERS = "hgvs_normalized_vkgl\tcdna_patched\terror";
   private static final String VKGL_HEADERS = "id\tchromosome\tstart\tstop\tref\talt\tgene\tc_dna\thgvs_g\thgvs_c\ttranscript\tprotein\ttype\tlocation\texon\teffect\tclassification\tcomments\tis_legacy\tlab_upload_date";
+  private static final String TAB = "\t";
 
   private final ReferenceSequenceValidator refValidator;
   private final GenericDataMapper genericMapper;
@@ -76,7 +76,7 @@ public class MySpringBootRouter extends RouteBuilder {
   }
 
   private String[] getSplittedHeaders(String customHeaders, String defaultHeaders) {
-    return (customHeaders + "\t" + defaultHeaders).split("\t");
+    return (customHeaders + TAB + defaultHeaders).split(TAB);
   }
 
   private HgncGeneValidator getGeneValidator(String genesFile) throws IOException {
@@ -84,6 +84,22 @@ public class MySpringBootRouter extends RouteBuilder {
     new HgncGenesParser(genesFile, hgncGenes);
     return new HgncGeneValidator(hgncGenes.getGenes(),
         hgncGenes.getPreviousGeneAliases());
+  }
+
+  private CsvDataFormat getNewCsv(String[] header, boolean useMaps, boolean headerDisabled)
+      throws IOException {
+    try (CsvDataFormat csv = new CsvDataFormat().setDelimiter('\t')) {
+      if (header != null) {
+        csv.setHeader(header);
+      }
+      if (useMaps) {
+        csv.setUseMaps(true);
+      }
+      if (headerDisabled) {
+        csv.setHeaderDisabled(true);
+      }
+      return csv;
+    }
   }
 
   @Override
@@ -98,29 +114,17 @@ public class MySpringBootRouter extends RouteBuilder {
 
     from("direct:write-alissa-error")
         .routeId("alissaErrorRoute")
-        .marshal(
-            new CsvDataFormat()
-                .setDelimiter('\t')
-                .setHeader(getSplittedHeaders(ALISSA_HEADERS, ERROR_HEADERS))
-                .setHeaderDisabled(true))
+        .marshal(getNewCsv(getSplittedHeaders(ALISSA_HEADERS, ERROR_HEADERS), false, true))
         .to("direct:append-error");
 
     from("direct:write-radboud-error")
         .routeId("radboudErrorRoute")
-        .marshal(
-            new CsvDataFormat()
-                .setDelimiter('\t')
-                .setHeader(getSplittedHeaders(RADBOUD_HEADERS, ERROR_HEADERS))
-                .setHeaderDisabled(true))
+        .marshal(getNewCsv(getSplittedHeaders(RADBOUD_HEADERS, ERROR_HEADERS), false, true))
         .to("direct:append-error");
 
     from("direct:write-lumc-error")
         .routeId("lumcErrorRoute")
-        .marshal(
-            new CsvDataFormat()
-                .setDelimiter('\t')
-                .setHeader(getSplittedHeaders(LUMC_HEADERS, ERROR_HEADERS))
-                .setHeaderDisabled(true))
+        .marshal(getNewCsv(getSplittedHeaders(LUMC_HEADERS, ERROR_HEADERS), false, true))
         .to("direct:append-error");
 
     from("direct:write-error")
@@ -129,27 +133,22 @@ public class MySpringBootRouter extends RouteBuilder {
 
     from("direct:marshal-alissa-result")
         .routeId("marshalAlissaRoute")
-        .marshal(new CsvDataFormat().setDelimiter('\t')
-            .setHeader(getSplittedHeaders(ALISSA_HEADERS, VCF_HEADERS)))
+        .marshal(getNewCsv(getSplittedHeaders(ALISSA_HEADERS, VCF_HEADERS), false, false))
         .to(resultFile);
 
     from("direct:marshal-radboud-result")
         .routeId("marshalRadboudRoute")
-        .marshal(new CsvDataFormat().setDelimiter('\t')
-            .setHeader(getSplittedHeaders(RADBOUD_HEADERS, VCF_HEADERS)))
+        .marshal(getNewCsv(getSplittedHeaders(RADBOUD_HEADERS, VCF_HEADERS), false, false))
         .to(resultFile);
 
     from("direct:marshal-lumc-result")
         .routeId("marshalLumcRoute")
-        .marshal(new CsvDataFormat().setDelimiter('\t')
-            .setHeader(getSplittedHeaders(LUMC_HEADERS, VCF_HEADERS)))
+        .marshal(getNewCsv(getSplittedHeaders(LUMC_HEADERS, VCF_HEADERS), false, false))
         .to(resultFile);
 
     from("direct:marshal-vkgl-result")
         .routeId("marshalVkglRoute")
-        .marshal(new CsvDataFormat().setDelimiter('\t')
-            .setHeader((VKGL_HEADERS).split("\t"))
-            .setHeaderDisabled(true))
+        .marshal(getNewCsv((VKGL_HEADERS).split(TAB), false, true))
         .to("file:result?fileName=vkgl_${file:name.noext}.tsv&fileExist=Append");
 
     from("direct:map-alissa-result")
@@ -172,8 +171,7 @@ public class MySpringBootRouter extends RouteBuilder {
 
     from("direct:write-result")
         .routeId("writeResultRoute")
-        .aggregate(header(FILE_NAME))
-        .strategy(groupedBody())
+        .aggregate(header(FILE_NAME), new GroupedBodyAggregationStrategy())
         .completionTimeout(DEFAULT_TIMEOUT)
         .to("log:done")
         .recipientList(simple(
@@ -196,8 +194,7 @@ public class MySpringBootRouter extends RouteBuilder {
         .routeId("validateRoute")
         .process()
         .body(Map.class, refValidator::validateOriginalRef)
-        .aggregate(header(FILE_NAME))
-        .strategy(groupedBody())
+        .aggregate(header(FILE_NAME), new GroupedBodyAggregationStrategy())
         .completionTimeout(fileCompletionTimeout)
         .process(geneValidator::getVariantsWithCorrectGenes)
         .to("direct:check_unique");
@@ -238,9 +235,9 @@ public class MySpringBootRouter extends RouteBuilder {
             "createOutputFile(\"result" + File.separator + "vkgl_\"${file:name.noext}\".tsv\"," +
                 VKGL_HEADERS + ")")
         .choice().when(simple("${header.CamelFileName} contains 'radboud'"))
-        .unmarshal(new CsvDataFormat().setDelimiter('\t').setUseMaps(true).setHeader(
-            RADBOUD_HEADERS.split("\t"))).otherwise()
-        .unmarshal(new CsvDataFormat().setDelimiter('\t').setUseMaps(true))
+        .unmarshal(getNewCsv(RADBOUD_HEADERS.split(TAB), true, false))
+        .otherwise()
+        .unmarshal(getNewCsv(null, true, false))
         .end()
         .to("direct:map_data");
   }
