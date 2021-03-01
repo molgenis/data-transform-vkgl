@@ -38,19 +38,22 @@ and annotate the lines with vcf info retrieved from the hgvs annotator.
 Results will be stored in results dir once finished. Results with an error message will be routed to
 error file.
 
-Requires JDK 8. To run the pipeline:
+Requires JDK 11. To run the pipeline:
 
 ```
-> mvn clean spring-boot:run
+> mvn spring-boot:run -Dspring-boot.run.arguments=--hgnc.genes="location/of/your/hgnc/genes/file"
 ```
+
+Scroll down for more information about the HGNC genes file.
 
 ![Pipeline overview](./vkgl.svg)
 
-## Gene validation
+## Gene validation (HGNC genes file)
 
-Validation and correction of provided HGNC symbols is done using an export downloaded from 
-[the biomart website](https://biomart.genenames.org/martform/#!/default/HGNC?datasets=hgnc_gene_mart). 
-The selected attributes are:
+Validation and correction of provided HGNC symbols is done using an export downloaded from
+[the biomart website](https://biomart.genenames.org/martform/#!/default/HGNC?datasets=hgnc_gene_mart)
+. The selected attributes are:
+
 - HGNC ID
 - Status
 - Approved symbol
@@ -60,10 +63,9 @@ The selected attributes are:
 - Chromosome
 - Chromosome location
 - Locus group
-- NCBI gene ID 
+- NCBI gene ID
 - Ensembl gene ID
-- UCSC gene ID  
+- UCSC gene ID
 
 The downloaded file is named `hgnc_genes.tsv` and is stored in `src/main/resources`. To have the
-most accurate validation, it is recommended to update this file before running the
-pipeline.
+most accurate validation, it is recommended to update this file before running the pipeline.
