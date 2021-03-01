@@ -89,7 +89,6 @@
       <artifactId>camel-http</artifactId>
       <version>${camel-version}</version>
     </dependency>
-
     <!-- Camel Spring Boot -->
     <dependency>
       <groupId>org.apache.camel.springboot</groupId>

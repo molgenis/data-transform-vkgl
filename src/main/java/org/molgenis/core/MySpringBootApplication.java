@@ -1,10 +1,11 @@
 package org.molgenis.core;
 
+import org.apache.camel.main.Main;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class MySpringBootApplication {
+public class MySpringBootApplication extends Main {
 
   /**
    * A main method to start this application.
