@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class RadboudMumcMapper extends InputDataMapper {
 
-  public static final String RADBOUD_HEADERS = "chromosome_orig\tstart\tstop\tref_orig\talt_orig\tgene\ttranscript\tprotein\tempty1\texon\tempty2\tclassification";
+  public static final String RADBOUD_HEADERS = "chromosome_orig\tstart\tstop\tref_orig\talt_orig\tgene_orig\ttranscript\tprotein\tempty1\texon\tempty2\tclassification";
 
   public RadboudMumcMapper(HgvsService hgvsService) {
     super(hgvsService);

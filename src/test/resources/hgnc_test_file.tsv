@@ -1,0 +1,51 @@
+HGNC ID	Status	Approved symbol	Approved name	Alias symbol	Previous symbol	Chromosome	Chromosome location	Locus group	NCBI gene ID	Ensembl gene ID	UCSC gene ID
+HGNC:5	Approved	A1BG	alpha-1-B glycoprotein			19	19q13.43	protein-coding gene	1	ENSG00000121410	uc002qsd.5
+HGNC:37133	Approved	A1BG-AS1	A1BG antisense RNA 1	FLJ23569	NCRNA00181	19	19q13.43	non-coding RNA	503538	ENSG00000268895	uc002qse.3
+HGNC:37133	Approved	A1BG-AS1	A1BG antisense RNA 1	FLJ23569	A1BGAS	19	19q13.43	non-coding RNA	503538	ENSG00000268895	uc002qse.3
+HGNC:37133	Approved	A1BG-AS1	A1BG antisense RNA 1	FLJ23569	A1BG-AS	19	19q13.43	non-coding RNA	503538	ENSG00000268895	uc002qse.3
+HGNC:24086	Approved	A1CF	APOBEC1 complementation factor	ACF		10	10q11.23	protein-coding gene	29974	ENSG00000148584	uc057tgv.1
+HGNC:24086	Approved	A1CF	APOBEC1 complementation factor	ASP		10	10q11.23	protein-coding gene	29974	ENSG00000148584	uc057tgv.1
+HGNC:24086	Approved	A1CF	APOBEC1 complementation factor	ACF64		10	10q11.23	protein-coding gene	29974	ENSG00000148584	uc057tgv.1
+HGNC:24086	Approved	A1CF	APOBEC1 complementation factor	ACF65		10	10q11.23	protein-coding gene	29974	ENSG00000148584	uc057tgv.1
+HGNC:24086	Approved	A1CF	APOBEC1 complementation factor	APOBEC1CF		10	10q11.23	protein-coding gene	29974	ENSG00000148584	uc057tgv.1
+HGNC:7	Approved	A2M	alpha-2-macroglobulin	FWP007		12	12p13.31	protein-coding gene	2	ENSG00000175899	uc001qvk.2
+HGNC:7	Approved	A2M	alpha-2-macroglobulin	S863-7		12	12p13.31	protein-coding gene	2	ENSG00000175899	uc001qvk.2
+HGNC:7	Approved	A2M	alpha-2-macroglobulin	CPAMD5		12	12p13.31	protein-coding gene	2	ENSG00000175899	uc001qvk.2
+HGNC:27057	Approved	A2M-AS1	A2M antisense RNA 1			12	12p13.31	non-coding RNA	144571	ENSG00000245105	uc009zgj.2
+HGNC:23336	Approved	A2ML1	alpha-2-macroglobulin like 1	FLJ25179	CPAMD9	12	12p13.31	protein-coding gene	144568	ENSG00000166535	uc001quz.6
+HGNC:23336	Approved	A2ML1	alpha-2-macroglobulin like 1	p170	CPAMD9	12	12p13.31	protein-coding gene	144568	ENSG00000166535	uc001quz.6
+HGNC:41022	Approved	A2ML1-AS1	A2ML1 antisense RNA 1			12	12p13.31	non-coding RNA	100874108	ENSG00000256661	uc058kxy.1
+HGNC:41523	Approved	A2ML1-AS2	A2ML1 antisense RNA 2			12	12p13.31	non-coding RNA	106478979	ENSG00000256904	uc058kyb.1
+HGNC:8	Approved	A2MP1	alpha-2-macroglobulin pseudogene 1		A2MP	12	12p13.31	pseudogene	3	ENSG00000256069
+HGNC:30005	Approved	A3GALT2	alpha 1,3-galactosyltransferase 2	IGBS3S	A3GALT2P	1	1p35.1	protein-coding gene	127550	ENSG00000184389	uc031plq.1
+HGNC:30005	Approved	A3GALT2	alpha 1,3-galactosyltransferase 2	IGB3S	A3GALT2P	1	1p35.1	protein-coding gene	127550	ENSG00000184389	uc031plq.1
+HGNC:18149	Approved	A4GALT	alpha 1,4-galactosyltransferase (P blood group)	A14GALT	P1	22	22q13.2	protein-coding gene	53947	ENSG00000128274	uc062ewl.1
+HGNC:18149	Approved	A4GALT	alpha 1,4-galactosyltransferase (P blood group)	Gb3S	P1	22	22q13.2	protein-coding gene	53947	ENSG00000128274	uc062ewl.1
+HGNC:18149	Approved	A4GALT	alpha 1,4-galactosyltransferase (P blood group)	P(k)	P1	22	22q13.2	protein-coding gene	53947	ENSG00000128274	uc062ewl.1
+HGNC:17968	Approved	A4GNT	alpha-1,4-N-acetylglucosaminyltransferase	alpha4GnT		3	3q22.3	protein-coding gene	51146	ENSG00000118017	uc003ers.2
+HGNC:1	Entry Withdrawn	A12M1	adenovirus-12 chromosome modification site 1C			NA		other
+HGNC:2	Entry Withdrawn	A12M2	adenovirus-12 chromosome modification site 1A			NA		other
+HGNC:3	Entry Withdrawn	A12M3	adenovirus-12 chromosome modification site 1B			NA		other
+HGNC:4	Entry Withdrawn	A12M4	adenovirus-12 chromosome modification site 17			NA		other
+HGNC:13666	Approved	AAAS	aladin WD repeat nucleoporin			12	12q13.13	protein-coding gene	8086	ENSG00000094914	uc001scr.5
+HGNC:12	Entry Withdrawn	AABT	amino acid transport, beta			NA		other
+HGNC:21298	Approved	AACS	acetoacetyl-CoA synthetase	FLJ12389		12	12q24.31	protein-coding gene	65985	ENSG00000081760	uc001uhc.4
+HGNC:21298	Approved	AACS	acetoacetyl-CoA synthetase	SUR-5		12	12q24.31	protein-coding gene	65985	ENSG00000081760	uc001uhc.4
+HGNC:21298	Approved	AACS	acetoacetyl-CoA synthetase	ACSF1		12	12q24.31	protein-coding gene	65985	ENSG00000081760	uc001uhc.4
+HGNC:18226	Approved	AACSP1	acetoacetyl-CoA synthetase pseudogene 1		AACSL	5	5q35.3	pseudogene	729522	ENSG00000250420
+HGNC:17	Approved	AADAC	arylacetamide deacetylase	DAC		3	3q25.1	protein-coding gene	13	ENSG00000114771	uc003eze.4
+HGNC:17	Approved	AADAC	arylacetamide deacetylase	CES5A1		3	3q25.1	protein-coding gene	13	ENSG00000114771	uc003eze.4
+HGNC:24427	Approved	AADACL2	arylacetamide deacetylase like 2	MGC72001		3	3q25.1	protein-coding gene	344752	ENSG00000197953	uc003ezc.4
+HGNC:50301	Approved	AADACL2-AS1	AADACL2 antisense RNA 1			3	3q25.1	non-coding RNA	101928142	ENSG00000242908
+HGNC:32037	Approved	AADACL3	arylacetamide deacetylase like 3	OTTHUMG00000001887		1	1p36.21	protein-coding gene	126767	ENSG00000188984	uc057ckc.1
+HGNC:32038	Approved	AADACL4	arylacetamide deacetylase like 4	OTTHUMG00000001889		1	1p36.21	protein-coding gene	343066	ENSG00000204518	uc001auf.3
+HGNC:50305	Approved	AADACP1	arylacetamide deacetylase pseudogene 1			3	3q25.1	pseudogene	201651	ENSG00000240602
+HGNC:17929	Approved	AADAT	aminoadipate aminotransferase	KATII		4	4q33	protein-coding gene	51166	ENSG00000109576	uc032udw.1
+HGNC:17929	Approved	AADAT	aminoadipate aminotransferase	KAT2		4	4q33	protein-coding gene	51166	ENSG00000109576	uc032udw.1
+HGNC:17929	Approved	AADAT	aminoadipate aminotransferase	KYAT2		4	4q33	protein-coding gene	51166	ENSG00000109576	uc032udw.1
+HGNC:25662	Approved	AAGAB	alpha and gamma adaptin binding protein	FLJ11506		15	15q23	protein-coding gene	79719	ENSG00000103591	uc002aqk.6
+HGNC:25662	Approved	AAGAB	alpha and gamma adaptin binding protein	p34		15	15q23	protein-coding gene	79719	ENSG00000103591	uc002aqk.6
+HGNC:19679	Approved	AAK1	AP2 associated kinase 1	KIAA1048		2	2p13.3	protein-coding gene	22848	ENSG00000115977	uc002sfp.3
+HGNC:19679	Approved	AAK1	AP2 associated kinase 1	DKFZp686K16132		2	2p13.3	protein-coding gene	22848	ENSG00000115977	uc002sfp.3
+HGNC:30205	Approved	AAMDC	adipogenesis associated Mth938 domain containing	PTD015	C11orf67	11	11q14.1	protein-coding gene	28971	ENSG00000087884	uc058fuq.1
+HGNC:30205	Approved	AAMDC	adipogenesis associated Mth938 domain containing	FLJ21035	C11orf67	11	11q14.1	protein-coding gene	28971	ENSG00000087884	uc058fuq.1

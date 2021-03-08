@@ -137,5 +137,26 @@
     "ref": "T",
     "alt": "TA",
     "type": "dup"
+  },
+  {
+    "chrom": "17",
+    "pos": 75493386,
+    "ref": "TC",
+    "alt": "TT",
+    "type": "sub"
+  },
+  {
+    "chrom": "17",
+    "pos": 75494730,
+    "ref": "CG",
+    "alt": "CA",
+    "type": "sub"
+  },
+  {
+    "chrom": "9",
+    "pos": 118163562,
+    "ref": "GC",
+    "alt": "GT",
+    "type": "sub"
   }
 ]

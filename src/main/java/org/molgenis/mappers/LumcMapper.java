@@ -26,6 +26,6 @@ public class LumcMapper extends InputDataMapper {
     mapClassification(body, originalClassification);
     body.put("hgvs_normalized_vkgl", body.get("gDNA_normalized"));
     body.remove("gDNA_normalized");
-    body.put("gene", body.get("geneid"));
+    body.put("gene_orig", body.get("geneid"));
   }
 }

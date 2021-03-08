@@ -1,6 +1,7 @@
 package org.molgenis;
 
-import static org.junit.Assert.assertTrue;
+import static org.apache.camel.builder.Builder.constant;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,32 +9,34 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import org.apache.camel.CamelContext;
 import org.apache.camel.EndpointInject;
-import org.apache.camel.builder.AdviceWithRouteBuilder;
+import org.apache.camel.builder.AdviceWith;
 import org.apache.camel.component.mock.MockEndpoint;
-import org.apache.camel.test.spring.CamelSpringBootRunner;
-import org.apache.camel.test.spring.DisableJmx;
+import org.apache.camel.test.spring.junit5.CamelSpringTest;
 import org.apache.commons.io.FileUtils;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.molgenis.core.MySpringBootRouter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTestContextBootstrapper;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.BootstrapWith;
+import org.springframework.test.context.ContextConfiguration;
 
-@RunWith(CamelSpringBootRunner.class)
-@SpringBootTest(classes = MySpringBootRouter.class)
+@CamelSpringTest
+@ContextConfiguration
+@BootstrapWith(SpringBootTestContextBootstrapper.class)
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
-@DisableJmx
-public class AppIT {
+@SpringBootTest(classes = MySpringBootRouter.class)
+class AppIT {
 
-  @EndpointInject(uri = MOCK_RESULT)
+  @EndpointInject(MOCK_RESULT)
   private MockEndpoint resultEndpoint;
 
-  @EndpointInject(uri = MOCK_ERROR)
+  @EndpointInject(MOCK_ERROR)
   private MockEndpoint errorEndpoint;
 
-  @EndpointInject(uri = MOCK_LAB)
+  @EndpointInject(MOCK_LAB)
   private MockEndpoint labSpecificEndpoint;
 
   @Autowired
@@ -44,13 +47,9 @@ public class AppIT {
   private static final String MOCK_LAB = "mock:lab";
 
   private void setMockEndpoint(String mockUri, String route) throws Exception {
-    camelContext.getRouteDefinition(route)
-        .adviceWith(camelContext, new AdviceWithRouteBuilder() {
-          @Override
-          public void configure() throws Exception {
-            weaveAddLast().to(mockUri);
-          }
-        });
+    AdviceWith.adviceWith(camelContext, route, a -> {
+      a.weaveAddLast().to(mockUri);
+    });
   }
 
   private void testRoute(String inputFileName, String lab, String labRoute,
@@ -64,14 +63,9 @@ public class AppIT {
             + "_mock.json");
 
     // Mock the api response
-    camelContext.getRouteDefinition("h2vRoute")
-        .adviceWith(camelContext, new AdviceWithRouteBuilder() {
-          @Override
-          public void configure() {
-            weaveById("variantFormatter")
-                .replace().setBody(constant(mockResponse));
-          }
-        });
+    AdviceWith.adviceWith(camelContext, "h2vRoute", a -> {
+      a.weaveById("variantFormatter").replace().setBody(constant(mockResponse));
+    });
     // Add mock endpoint after resultRoute to test messages are received
     setMockEndpoint(MOCK_RESULT, "writeResultRoute");
     // Add mock endpoint after errorRoute to test messages are received
@@ -111,17 +105,17 @@ public class AppIT {
   }
 
   @Test
-  public void testAlissaRoute() throws Exception {
-    testRoute("test_alissa.txt", "alissa", "marshalAlissaRoute", 16, 3);
+  void testAlissaRoute() throws Exception {
+    testRoute("test_alissa.txt", "alissa", "marshalAlissaRoute", 17, 5);
   }
 
   @Test
-  public void testLumcRoute() throws Exception {
+  void testLumcRoute() throws Exception {
     testRoute("test_lumc.tsv", "lumc", "marshalLumcRoute", 3, 0);
   }
 
   @Test
-  public void testRadboudMumcRoute() throws Exception {
+  void testRadboudMumcRoute() throws Exception {
     testRoute("test_radboud_mumc.tsv", "radboud_mumc", "marshalRadboudRoute", 4, 0);
   }
 }

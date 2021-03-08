@@ -3,7 +3,7 @@ package org.molgenis.mappers;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
-import javax.validation.UnexpectedTypeException;
+import java.util.zip.DataFormatException;
 import org.apache.camel.Exchange;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,7 +36,7 @@ public class GenericDataMapper {
     return headers.containsAll(Arrays.asList(typeHeader.split("\t")));
   }
 
-  static String getType(Set<String> headers) {
+  static String getType(Set<String> headers) throws DataFormatException {
     if (isTypeHeader(headers,
         LumcMapper.LUMC_HEADERS
             .replace("hgvs_normalized", "gDNA_normalized"))) {
@@ -48,7 +48,7 @@ public class GenericDataMapper {
             .replace("_orig", ""))) {
       return LabType.alissa.name();
     } else {
-      throw new UnexpectedTypeException(
+      throw new DataFormatException(
           "Lab type not recognized, check headers with headers of alissa, radboud, and lumc");
     }
   }
@@ -67,7 +67,7 @@ public class GenericDataMapper {
       } else {
         alissaMapper.mapData(body);
       }
-    } catch (UnexpectedTypeException ex) {
+    } catch (DataFormatException ex) {
       log.error(ex);
     }
   }
