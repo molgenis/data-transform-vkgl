@@ -22,7 +22,7 @@ public class HgncGenesParser {
 
   private final Map<String, Integer> headerPositions = new HashMap<>();
 
-  HgncGenes hgncGenes;
+  private final HgncGenes hgncGenes;
 
   public HgncGenesParser(String geneFilePath, HgncGenes hgncGenes) throws IOException {
     this.hgncGenes = hgncGenes;

@@ -13,8 +13,8 @@ public class HgncGeneValidator {
   private static final String ERROR = "error";
   private static final String SYMBOL = "approved_symbol";
 
-  Map<String, Map<String, String>> genes;
-  Map<String, String> previousGeneAliases;
+  private Map<String, Map<String, String>> genes;
+  private Map<String, String> previousGeneAliases;
 
   private Map<String, Map<String, String>> getGenes() {
     return genes;
