@@ -4,7 +4,6 @@ import static java.lang.String.format;
 import static org.slf4j.Logger.ROOT_LOGGER_NAME;
 
 import ch.qos.logback.classic.Level;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.EnumMap;
@@ -103,16 +102,20 @@ public class ConsensusGeneratorApp {
     Options options = new Options();
     options.addRequiredOption("a", OPTION_AMC, true, "Required: transformed AMC lab data (.tsv).");
     options
-        .addRequiredOption("e", OPTION_ERASMUS_MC, true, "Required: transformed Erasmus MC lab data (.tsv).");
-    options.addRequiredOption("l", OPTION_LUMC, true, "Required: transformed LUMC lab data (.tsv).");
+        .addRequiredOption("e", OPTION_ERASMUS_MC, true,
+            "Required: transformed Erasmus MC lab data (.tsv).");
+    options
+        .addRequiredOption("l", OPTION_LUMC, true, "Required: transformed LUMC lab data (.tsv).");
     options.addRequiredOption("n", OPTION_NKI, true, "Required: transformed NKI lab data (.tsv).");
     options
         .addRequiredOption("r", OPTION_RADBOUD_MUMC, true,
             "Required: transformed Radboud MUMC lab data (.tsv).");
     options.addRequiredOption("u", OPTION_UMC_UTRECHT, true,
         "Required: transformed UMC Utrecht lab data (.tsv).");
-    options.addRequiredOption("g", OPTION_UMCG, true, "Required: transformed UMCG lab data (.tsv).");
-    options.addRequiredOption("v", OPTION_VUMC, true, "Required: transformed VUMC lab data (.tsv).");
+    options
+        .addRequiredOption("g", OPTION_UMCG, true, "Required: transformed UMCG lab data (.tsv).");
+    options
+        .addRequiredOption("v", OPTION_VUMC, true, "Required: transformed VUMC lab data (.tsv).");
     options.addRequiredOption("o", OPTION_OUTPUT, true, "Required: output consensus data (.tsv)");
     options
         .addOption("f", OPTION_FORCE, false, "Overwrite output file if it already exists.");
