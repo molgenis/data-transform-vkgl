@@ -69,3 +69,9 @@ Validation and correction of provided HGNC symbols is done using an export downl
 
 The downloaded file is named `hgnc_genes.tsv` and is stored in `src/main/resources`. To have the
 most accurate validation, it is recommended to update this file before running the pipeline.
+
+## Consensus generator application
+
+The org.molgenis.consensus package contains the ConsensusGeneratorApp command-line application to
+produce a consensus file using the output of the data-transform-vkgl pipeline. Run the application
+for more information.
