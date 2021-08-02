@@ -173,9 +173,9 @@ public class MySpringBootRouter extends RouteBuilder {
         .routeId("writeResultRoute")
         .aggregate(header(FILE_NAME), new GroupedBodyAggregationStrategy())
         .completionTimeout(DEFAULT_TIMEOUT)
-        .to("log:done")
         .recipientList(simple(
-            "direct:marshal-${header.labType}-result,direct:map-${header.labType}-result"));
+            "direct:marshal-${header.labType}-result,direct:map-${header.labType}-result"))
+        .to("log:done");
 
     from("direct:check_unique")
         .routeId("checkUniqueRoute")
