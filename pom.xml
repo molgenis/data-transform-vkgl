@@ -107,6 +107,11 @@
       <artifactId>camel-spring-boot-starter</artifactId>
       <version>${camel-version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.camel.springboot</groupId>
+      <artifactId>camel-http-starter</artifactId>
+      <version>${camel-version}</version>
+    </dependency>
 
     <!-- Extra dependencies to migrate to Java 11-->
     <dependency>
