@@ -35,6 +35,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class MySpringBootRouter extends RouteBuilder {
 
+  public static final String ERROR_EXPRESSION = "An exception occured for file: '${file:onlyname}' msg: '${exception.message}' \\n ";
+
   @Value("${completion.timeout}")
   private int fileCompletionTimeout;
   private static final int DEFAULT_TIMEOUT = 1000;
@@ -53,6 +55,9 @@ public class MySpringBootRouter extends RouteBuilder {
 
   @Value("${hgnc.genes}")
   String hgncGenesFile;
+
+  @Value("${exitOnError:false}")
+  boolean exitOnError;
 
   public MySpringBootRouter(ReferenceSequenceValidator refValidator,
       GenericDataMapper genericMapper, AlissaVkglTableMapper alissaTableMapper,
@@ -112,6 +117,10 @@ public class MySpringBootRouter extends RouteBuilder {
         .routeId("appendErrorRoute")
         .to("file:result?fileName=vkgl_${file:name.noext}_error.txt&fileExist=Append");
 
+    from("direct:append-system-error")
+        .routeId("appendSystemErrorRoute")
+        .to("file:result?fileName=error.log&fileExist=Append");
+
     from("direct:write-alissa-error")
         .routeId("alissaErrorRoute")
         .marshal(getNewCsv(getSplittedHeaders(ALISSA_HEADERS, ERROR_HEADERS), false, true))
@@ -131,57 +140,60 @@ public class MySpringBootRouter extends RouteBuilder {
         .routeId("writeErrorRoute")
         .recipientList(simple("direct:write-${header.labType}-error"));
 
-    from("direct:marshal-alissa-result")
+    from("direct:marshal-alissa-result").doTry()
         .routeId("marshalAlissaRoute")
         .marshal(getNewCsv(getSplittedHeaders(ALISSA_HEADERS, VCF_HEADERS), false, false))
-        .to(resultFile);
+        .to(resultFile).doCatch(Exception.class).process(exchange -> processError()).end();
 
-    from("direct:marshal-radboud-result")
+    from("direct:marshal-radboud-result").doTry()
         .routeId("marshalRadboudRoute")
         .marshal(getNewCsv(getSplittedHeaders(RADBOUD_HEADERS, VCF_HEADERS), false, false))
-        .to(resultFile);
+        .to(resultFile).doCatch(Exception.class).process(exchange -> processError()).end();
 
-    from("direct:marshal-lumc-result")
+    from("direct:marshal-lumc-result").doTry()
         .routeId("marshalLumcRoute")
         .marshal(getNewCsv(getSplittedHeaders(LUMC_HEADERS, VCF_HEADERS), false, false))
-        .to(resultFile);
+        .to(resultFile).doCatch(Exception.class).process(exchange -> processError()).end();
 
-    from("direct:marshal-vkgl-result")
+    from("direct:marshal-vkgl-result").doTry()
         .routeId("marshalVkglRoute")
         .marshal(getNewCsv((VKGL_HEADERS).split(TAB), false, true))
-        .to("file:result?fileName=vkgl_${file:name.noext}.tsv&fileExist=Append");
+        .to("file:result?fileName=vkgl_${file:name.noext}.tsv&fileExist=Append")
+        .doCatch(Exception.class).process(exchange -> processError()).end();
 
     from("direct:map-alissa-result")
         .routeId("mapAlissaRoute")
-        .split().body()
+        .split().body().doTry()
         .process().body(Map.class, alissaTableMapper::mapLine)
-        .to("direct:marshal-vkgl-result");
+        .to("direct:marshal-vkgl-result").doCatch(Exception.class)
+        .process(exchange -> processError()).end();
 
-    from("direct:map-lumc-result")
+    from("direct:map-lumc-result").doTry()
         .routeId("mapLumcRoute")
-        .split().body()
+        .split().body().doTry()
         .process().body(Map.class, lumcTableMapper::mapLine)
-        .to("direct:marshal-vkgl-result");
+        .to("direct:marshal-vkgl-result").doCatch(Exception.class)
+        .process(exchange -> processError()).end();
 
     from("direct:map-radboud-result")
         .routeId("mapRaboudRoute")
-        .split().body()
+        .split().body().doTry()
         .process().body(Map.class, radboudMumcTableMapper::mapLine)
-        .to("direct:marshal-vkgl-result");
+        .to("direct:marshal-vkgl-result").doCatch(Exception.class)
+        .process(exchange -> processError()).end();
 
     from("direct:write-result")
         .routeId("writeResultRoute")
         .aggregate(header(FILE_NAME), new GroupedBodyAggregationStrategy())
         .completionTimeout(DEFAULT_TIMEOUT)
+        .to("log:done")
         .recipientList(simple(
-            "direct:marshal-${header.labType}-result,direct:map-${header.labType}-result"))
-        .delay(10000)
-        .to("log:done");
+            "direct:marshal-${header.labType}-result,direct:map-${header.labType}-result"));
 
     from("direct:check_unique")
-        .routeId("checkUniqueRoute")
+        .routeId("checkUniqueRoute").doTry()
         .process(uniquenessChecker::getUniqueVariants)
-        .split().body()
+        .doCatch(Exception.class).process(exchange -> processError()).end().split().body()
         .choice()
         .when(simple("${body['error']} != null"))
         .to("log:error")
@@ -196,11 +208,12 @@ public class MySpringBootRouter extends RouteBuilder {
         .process()
         .body(Map.class, refValidator::validateOriginalRef)
         .aggregate(header(FILE_NAME), new GroupedBodyAggregationStrategy())
-        .completionTimeout(fileCompletionTimeout)
+        .completionTimeout(fileCompletionTimeout).doTry()
         .process(geneValidator::getVariantsWithCorrectGenes)
-        .to("direct:check_unique");
+        .to("direct:check_unique").doCatch(Exception.class)
+        .process(exchange -> processError()).end();
 
-    from("direct:h2v")
+    from("direct:h2v").doTry()
         .routeId("h2vRoute")
         .to("log:httprequest")
         .transform()
@@ -212,34 +225,44 @@ public class MySpringBootRouter extends RouteBuilder {
         .id("variantFormatter")
         .unmarshal()
         .json(Jackson)
-        .to("log:httpresponse");
+        .to("log:httpresponse").doCatch(Exception.class).transform().simple(
+        ERROR_EXPRESSION)
+        .to("direct:append-system-error").process(exchange -> processError()).end();
 
     from("direct:hgvs2vcf")
         .routeId("vcfRoute")
         .description("Validates the normalized gDNA.")
         .aggregate(header(FILE_NAME), groupedBody())
         .completionSize(COMPLETION_SIZE)
-        .completionTimeout(DEFAULT_TIMEOUT)
+        .completionTimeout(DEFAULT_TIMEOUT).doTry()
         .enrich("direct:h2v", this::mergeLists)
-        .split().body()
+        .doCatch(Exception.class).process(exchange -> processError()).end().split().body()
         .to("direct:validate");
 
     from("direct:map_data")
         .routeId("mappingRoute")
-        .split().body()
+        .split().body().doTry()
         .process().exchange(genericMapper::mapData)
-        .to("direct:hgvs2vcf");
+        .to("direct:hgvs2vcf").doCatch(Exception.class)
+        .process(exchange -> processError()).end();
 
     from("file:src" + File.separator + "test" + File.separator + "inbox" + File.separator)
-        .routeId("outputFileRoute")
+        .routeId("outputFileRoute").doTry()
         .bean(FileCreator.class,
             "createOutputFile(\"result" + File.separator + "vkgl_\"${file:name.noext}\".tsv\"," +
-                VKGL_HEADERS + ")")
-        .choice().when(simple("${header.CamelFileName} contains 'radboud'"))
-        .unmarshal(getNewCsv(RADBOUD_HEADERS.split(TAB), true, false))
+                VKGL_HEADERS + ")").doCatch(Exception.class)
+        .process(exchange -> processError()).end()
+        .choice().when(simple("${header.CamelFileName} contains 'radboud'")).
+        unmarshal(getNewCsv(RADBOUD_HEADERS.split(TAB), true, false))
         .otherwise()
         .unmarshal(getNewCsv(null, true, false))
         .end()
         .to("direct:map_data");
+  }
+
+  private void processError() {
+    if (exitOnError) {
+      System.exit(1);
+    }
   }
 }
