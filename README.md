@@ -44,6 +44,8 @@ Requires JDK 11. To run the pipeline:
 > mvn spring-boot:run -Dspring-boot.run.arguments=--hgnc.genes="location/of/your/hgnc/genes/file"
 ```
 
+Add ```--exitOnError=true``` if you want the service to exit when an exception occurs.
+
 Scroll down for more information about the HGNC genes file.
 
 ![Pipeline overview](./vkgl.svg)
