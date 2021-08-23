@@ -1,7 +1,5 @@
 import os
 
-from termcolor import colored
-
 from ArgumentParser import ArgumentParser
 
 transformed = '/transformed/'
@@ -53,10 +51,10 @@ def compare_line_counts(line_counts, error_types):
         errors_plus_transformed_lines_dups = errors_plus_transformed_lines + error_types[error_file_name]['dup']
         errors = 0
         if enriched_file_length != transformed_file_length:
-            print('❌ Length of [{}]({}) not equal to length of [{}]({})'.format(colored(enriched_file_name, 'red'),
-                                                                                colored(enriched_file_length, 'red'),
-                                                                                colored(transformed_file_name, 'red'),
-                                                                                colored(transformed_file_length, 'red')
+            print('❌ Length of [{}]({}) not equal to length of [{}]({})'.format(enriched_file_name,
+                                                                                enriched_file_length,
+                                                                                transformed_file_name,
+                                                                                transformed_file_length
                                                                                 ))
             errors += 1
             checks['errors'] += 1
@@ -64,14 +62,12 @@ def compare_line_counts(line_counts, error_types):
         # radboud preprocessed file misses the header
         if ('radboud' not in filename and preprocessed_lines != errors_plus_transformed_lines_dups) or (
                 'radboud' in filename and preprocessed_lines + 1 != errors_plus_transformed_lines_dups):
-            print('❌ Length of [{}]({}) not equal to length of [{}]({})'.format(colored(preprocessed + filename, 'red'),
-                                                                                colored(preprocessed_lines, 'red'),
-                                                                                colored('{} + {}'.format(
+            print('❌ Length of [{}]({}) not equal to length of [{}]({})'.format(preprocessed + filename,
+                                                                                preprocessed_lines,
+                                                                                '{} + {}'.format(
                                                                                     transformed_file_name,
-                                                                                    error_file_name), 'red'),
-                                                                                colored(
-                                                                                    errors_plus_transformed_lines_dups,
-                                                                                    'red')))
+                                                                                    error_file_name),
+                                                                                    errors_plus_transformed_lines_dups))
             errors += 1
             checks['errors'] += 1
 
@@ -112,7 +108,7 @@ def main():
         print('✅ Preprocessed, transformed and consensus folders present')
     else:
         errors += 1
-        print('❌ [{}] folder(s) missing from selected output folder'.format(colored(','.join(missing_folders), 'blue')))
+        print('❌ [{}] folder(s) missing from selected output folder'.format(','.join(missing_folders)))
 
     if 'transformed' not in missing_folders:
         # Check if linecount in processed data are the same in enriched and output data
