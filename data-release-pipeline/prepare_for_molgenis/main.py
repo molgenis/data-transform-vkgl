@@ -6,30 +6,32 @@ from shutil import copyfile
 from ArgumentParser import ArgumentParser
 from ConfigWriter import ConfigWriter
 from GithubConnector import GithubConnector
-from GithubRepoVersionChecker import GithubRepoVersionChecker
 from ScriptUtils import ScriptUtils
 
 github = GithubConnector()
-version_checker = GithubRepoVersionChecker()
 repo = 'molgenis-py-consensus'
 
 done_msg = '✅ Done'
 
 
-def retrieve_molgenis_py_consensus(vkgl_dir):
-    print('Retrieving newest molgenis-py-consensus...', end=' ')
-    available_versions = os.listdir(vkgl_dir)
-    current_version = version_checker.get_current_version(available_versions, repo)
-    json_response = github.get_latest_release(repo)
-    latest_version = github.get_latest_version_from_response(json_response)
-    latest_zip_file = '{}{}{}-{}.zip'.format(vkgl_dir, os.sep, repo, latest_version)
-    if current_version != '.'.join(
-            [str(item) for item in
-             version_checker.compare_versions(current_version.split('.'), latest_version.split('.'))]):
-        github.download_latest_zip_from_response(json_response, vkgl_dir, repo)
-    dirname = ScriptUtils.unzip(latest_zip_file, vkgl_dir)
+def retrieve_molgenis_py_consensus(args):
+    vkgl_dir = args.vkgl_output
+    version = args.mg_py_consensus_version
+    print('Retrieving molgenis-py-consensus...', end=' ')
+
+    if not version:
+        json_response = github.get_latest_release(repo)
+        version = github.get_version_from_response(json_response)
+    else:
+        json_response = github.get_version_release(repo, version)
+
+    zip_file = '{}{}{}-{}.zip'.format(vkgl_dir, os.sep, repo, version)
+    github.download_latest_zip_from_response(json_response, vkgl_dir, repo)
+
+    dirname = ScriptUtils.unzip(zip_file, vkgl_dir)
     print(done_msg)
     return dirname
+
 
 
 def create_config(args, filename):
@@ -121,7 +123,7 @@ def main():
     vkgl_dir = args.vkgl_output
 
     if os.path.isdir(vkgl_dir):
-        script_dirname = retrieve_molgenis_py_consensus(vkgl_dir)
+        script_dirname = retrieve_molgenis_py_consensus(args)
 
         # Create config file for molgenis-py-consensus
         create_config(args, script_dirname)
