@@ -62,21 +62,23 @@ transform() {
   local -r outputFilePath="${2}"
   local -r genesFilePath="${3}"
 
+  echo "transforming ${inputFilePath} ..."
+
   # parse genes header
   local genesGeneIdColIdx=""
   local genesGeneSymbolColIdx=""
   IFS=$'\t' read -r -a genesColHeader < <(head -n 1 "${genesFilePath}")
   for i in "${!genesColHeader[@]}"
   do
-          if [ "${genesColHeader[$i]}" == "HGNC ID" ]; then
-                  genesGeneIdColIdx=$(("${i}" + 1))
+          if [ "${genesColHeader[$i]}" == "NCBI gene ID" ]; then
+                  genesGeneIdColIdx=$((i + 1))
           fi
           if [ "${genesColHeader[$i]}" == "Approved symbol" ]; then
-                  genesGeneSymbolColIdx=$(("${i}" + 1))
+                  genesGeneSymbolColIdx=$((i + 1))
           fi
   done
   if [[ -z "${genesGeneIdColIdx}" ]]; then
-      echo -e "error: genes input ${genesFilePath} doesn't contain column 'HGNC ID'."
+      echo -e "error: genes input ${genesFilePath} doesn't contain column 'NCBI gene ID'."
       exit 1
   fi
   if [[ -z "${genesGeneSymbolColIdx}" ]]; then
@@ -91,7 +93,7 @@ transform() {
   while IFS=$'\t' read -r geneId geneSymbol
   do
       # workaround for https://github.com/molgenis/data-transform-vkgl/issues/52
-      geneMap["${geneSymbol,,}"]="${geneId#"HGNC:"}"
+      geneMap["${geneSymbol,,}"]="${geneId}"
   done < <(tail -n +2 "${genesFilePath}" | cut -d$'\t' -f "${genesGeneIdColIdx}","${genesGeneSymbolColIdx}")
 
   # parse input header
@@ -100,7 +102,7 @@ transform() {
   for i in "${!inputColHeader[@]}"
   do
           if [ "${inputColHeader[$i]}" == "gene" ]; then
-                  inputGeneSymbolColIdx=$(("${i}" + 1))
+                  inputGeneSymbolColIdx=$((i + 1))
                   break
           fi
   done
@@ -109,9 +111,9 @@ transform() {
       exit 1
   fi
 
-  # create input gene_id column
+  # create input gene_id_entrez_gene column
   local -r tmpFilePath=$(mktemp)
-  echo "gene_id" >> "${tmpFilePath}"
+  echo "gene_id_entrez_gene" >> "${tmpFilePath}"
   while IFS=$'\t' read -r geneSymbol
   do
       # workaround for https://github.com/molgenis/data-transform-vkgl/issues/52
@@ -120,6 +122,8 @@ transform() {
 
   paste -d'\t' "${inputFilePath}" "${tmpFilePath}" > "${outputFilePath}"
   rm "${tmpFilePath}"
+
+  echo "transforming ${inputFilePath} done"
 }
 
 main() {
