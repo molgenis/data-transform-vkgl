@@ -90,11 +90,13 @@ transform() {
   local geneId=""
   local geneSymbol=""
   declare -A geneMap
-  while IFS=$'\t' read -r geneId geneSymbol
+
+  # use | because: "A sequence of IFS whitespace characters is also treated as a delimiter" (source: https://linux.die.net/man/1/bash)
+  while IFS='|' read -r geneId geneSymbol
   do
       # workaround for https://github.com/molgenis/data-transform-vkgl/issues/52
       geneMap["${geneSymbol,,}"]="${geneId}"
-  done < <(tail -n +2 "${genesFilePath}" | cut -d$'\t' -f "${genesGeneIdColIdx}","${genesGeneSymbolColIdx}")
+  done < <(tail -n +2 "${genesFilePath}" | awk -v col1="${genesGeneIdColIdx}" -v col2="${genesGeneSymbolColIdx}" 'BEGIN {FS="\t"}; {print $col1 "|" $col2}')
 
   # parse input header
   local inputGeneSymbolColIdx=""
