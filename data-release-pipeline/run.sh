@@ -59,8 +59,8 @@ transformData() {
 
   mkdir -p "${outputDir}"
 
-  dataTransformVersion="2.0.4"
-  
+  dataTransformVersion="2.0.5"
+
   wget -q -c https://github.com/molgenis/data-transform-vkgl/archive/refs/tags/${dataTransformVersion}.tar.gz -O - | tar -xz -C "${outputDir}"
   wget -q -c https://mirror.lyrahosting.com/apache/maven/maven-3/3.8.1/binaries/apache-maven-3.8.1-bin.tar.gz -O - | tar -xz -C "${outputDir}"
 
@@ -102,7 +102,7 @@ transformData() {
   module purge
 
   if [[ "${numProcessedFiles}" < "${numFiles}" ]]; then
-      exit 1
+    exit 1
   fi
 
   local -r outboxDir="${dataTransformVkglDir}/result"
@@ -171,19 +171,19 @@ downloadS3LabData() {
   local -r awsConfigFilePath="${3}"
 
   mkdir -p "${outputDir}"
-  module load Python/3.9.1-GCCcore-7.3.0-bare 1> /dev/null
+  module load Python/3.9.1-GCCcore-7.3.0-bare 1>/dev/null
 
   export AWS_SHARED_CREDENTIALS_FILE="${awsCredentialsFilePath}"
   export AWS_CONFIG_FILE="${awsConfigFilePath}"
 
   # install python
   local -r pythonVenv="${outputDir}/python_venv"
-  python -m venv "${pythonVenv}" 1> /dev/null
-  . "${pythonVenv}/bin/activate" 1> /dev/null
-  python -m pip install --disable-pip-version-check boto3 1> /dev/null
+  python -m venv "${pythonVenv}" 1>/dev/null
+  . "${pythonVenv}/bin/activate" 1>/dev/null
+  python -m pip install --disable-pip-version-check boto3 1>/dev/null
 
   # run script
-  python "${SCRIPT_DIR}/vkgl_labs_download.py" "${outputDir}" 1> "${outputDir}/download.log"
+  python "${SCRIPT_DIR}/vkgl_labs_download.py" "${outputDir}" 1>"${outputDir}/download.log"
 
   module purge
 }
