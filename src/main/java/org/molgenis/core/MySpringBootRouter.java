@@ -93,7 +93,7 @@ public class MySpringBootRouter extends RouteBuilder {
 
   private CsvDataFormat getNewCsv(String[] header, boolean useMaps, boolean headerDisabled)
       throws IOException {
-    try (CsvDataFormat csv = new CsvDataFormat().setDelimiter('\t')) {
+    try (CsvDataFormat csv = new CsvDataFormat().setDelimiter('\t').setNullString("")) {
       if (header != null) {
         csv.setHeader(header);
       }
