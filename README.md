@@ -71,3 +71,5 @@ Validation and correction of provided HGNC symbols is done using an export downl
 
 The downloaded file is named `hgnc_genes.tsv` and is stored in `src/main/resources`. To have the
 most accurate validation, it is recommended to update this file before running the pipeline.
+
+
