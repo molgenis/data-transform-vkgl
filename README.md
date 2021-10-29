@@ -71,3 +71,10 @@ Validation and correction of provided HGNC symbols is done using an export downl
 
 The downloaded file is named `hgnc_genes.tsv` and is stored in `src/main/resources`. To have the
 most accurate validation, it is recommended to update this file before running the pipeline.
+
+## Release
+
+Releasing this repository is kind of special because it's a collection of scripts. First do simple
+github release. Then checkout the master, increase the version number in `run.sh` and commit it. Put
+a tag on the new version using the `data-release-v` prefix. Then push it to the master. Finalise the
+release by releasing the tag you just pushed.
