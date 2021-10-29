@@ -59,7 +59,7 @@ transformData() {
 
   mkdir -p "${outputDir}"
 
-  dataTransformVersion="2.0.5"
+  dataTransformVersion="2.1.0"
 
   wget -q -c https://github.com/molgenis/data-transform-vkgl/archive/refs/tags/${dataTransformVersion}.tar.gz -O - | tar -xz -C "${outputDir}"
   wget -q -c https://mirror.lyrahosting.com/apache/maven/maven-3/3.8.1/binaries/apache-maven-3.8.1-bin.tar.gz -O - | tar -xz -C "${outputDir}"
