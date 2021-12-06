@@ -11,6 +11,7 @@ usage() {
 
 -r, --release   <arg>  required: name of the directory for this release in each home dir on the ftp server.
 -s, --server    <arg>  required: name of the ftp server in your ssh config.
+-l, --files-list  <arg> required: path to the file with filenames to include in the rsync download.
 
 --hgnc_biomart_genes <arg>  optional: path to HGNC BioMart gene file (default: download latest dataset)."
 }
@@ -111,21 +112,20 @@ transformData() {
 #   $2 path to folder containing downloaded variant files
 preprocessData() {
   local -r outputDir="${1}"
-  local -r inputDir="${2}"
+  local -r labDataDir="${2}"
 
   mkdir -p "${outputDir}"
 
-  cp "${lumcFilePath}" "${outputDir}"
-  cp "${radboudMumcFilePath}" "${outputDir}"
-
   # prepend empty timestamp and id column to S3 data
   local outputFilePath=""
-  for entry in "${s3Dir}"/*; do
+  for entry in "${labDataDir}"/alissa/*; do
     [[ -f "${entry}" && "${entry}" != *.log ]] || continue
     outputFilePath="${outputDir}/$(basename "${entry}")"
     head -n 1 "${entry}" | awk '{print "timestamp\tid\t"$0}' >"${outputFilePath}"
     tail -n +2 "${entry}" | awk '{print "\t\t"$0}' >>"${outputFilePath}"
   done
+  extractData "$labDataDir/radboud/" "$outputDir"
+  extractData "$labDataDir/lumc/" "$outputDir"
 
   # merge VUMC data
   local vumc=""
@@ -138,9 +138,11 @@ preprocessData() {
     fi
   done
   if [[ -z ${vumc} ]]; then
+    echo "Missing VU data."
     exit 1
   fi
   if [[ -z ${vumcWes} ]]; then
+    echo "Missing VU WES data."
     exit 1
   fi
   tail -n +2 "${vumcWes}" >>"${vumc}"
@@ -152,6 +154,22 @@ preprocessData() {
   #  rm "${entry}"
   #  mv "${entry}.tmp" "${entry}"
   #done
+}
+
+# arguments:
+#   $2 path to folder containing potential compressed data
+#   $2 path to output folder
+extractData() {
+  local -r inputDir="${1}"
+  local -r outputDir="${2}"
+    for file in $inputDir/*; do
+    if [ "${file: -4}" == ".zip" ]; then
+      unzip -d "$outputDir" "$file"
+    elif [[ "${file: -3}" == ".gz" ]]; then
+      filename=$(basename $file ".gz")
+      gzip -dc ${file} >"/$outputDir/${filename}"
+    fi
+  done
 }
 
 # arguments:
@@ -167,9 +185,9 @@ downloadLabData() {
 
   mkdir -p "${outputDir}"
 
-  rsync --include-from "${filesList}" --exclude='*' --rsh='ssh -p 443 -l umcg-vkgl-alissa' "${server}"::home/"${release}"/ ${outputDir}
-  rsync --include-from "${filesList}" --exclude='*' --rsh='ssh -p 443 -l umcg-vkgl-lumc' "${server}"::home/"${release}"/ ${outputDir}
-  rsync --include-from "${filesList}" --exclude='*' --rsh='ssh -p 443 -l umcg-vkgl-radboud' "${server}"::home/"${release}"/ ${outputDir}
+  rsync -av --include-from "${filesList}" --exclude='*' --rsh='ssh -p 443 -l umcg-vkgl-lumc' "${server}::home/${release}/" "${outputDir}/lumc"
+  rsync -av --include-from "${filesList}" --exclude='*' --rsh='ssh -p 443 -l umcg-vkgl-radboud' "${server}::home/${release}/" "${outputDir}/radboud"
+  rsync -av --include-from "${filesList}" --exclude='*' --rsh='ssh -p 443 -l umcg-vkgl-alissa' "${server}::home/${release}/" "${outputDir}/alissa/"
 
   module purge
 }
@@ -182,11 +200,11 @@ downloadHgncBiomartGenes() {
   mkdir -p "$(dirname "${outputFilePath}")"
 
   curl 'https://biomart.genenames.org/martservice/results' \
-    -s \
-    --compressed \
-    -H 'Content-Type: application/x-www-form-urlencoded' \
-    --data 'download=true&query=%3C%21DOCTYPE+Query%3E%3CQuery+client%3D%22biomartclient%22+processor%3D%22TSV%22+limit%3D%22-1%22+header%3D%221%22%3E%3CDataset+name%3D%22hgnc_gene_mart%22+config%3D%22hgnc_gene_config%22%3E%3CAttribute+name%3D%22hgnc_gene__hgnc_gene_id_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__status_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__approved_symbol_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__approved_name_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__hgnc_alias_symbol__alias_symbol_108%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__hgnc_previous_symbol__previous_symbol_1012%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__chromosome_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__chromosome_location_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__locus_group_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__ncbi_gene__gene_id_1026%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__ensembl_gene__ensembl_gene_id_104%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__ucsc__ucsc_gene_id_1035%22%2F%3E%3C%2FDataset%3E%3C%2FQuery%3E' \
-    -o "${outputFilePath}"
+  -s \
+  --compressed \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  --data 'download=true&query=%3C%21DOCTYPE+Query%3E%3CQuery+client%3D%22biomartclient%22+processor%3D%22TSV%22+limit%3D%22-1%22+header%3D%221%22%3E%3CDataset+name%3D%22hgnc_gene_mart%22+config%3D%22hgnc_gene_config%22%3E%3CAttribute+name%3D%22hgnc_gene__hgnc_gene_id_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__status_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__approved_symbol_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__approved_name_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__hgnc_alias_symbol__alias_symbol_108%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__hgnc_previous_symbol__previous_symbol_1012%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__chromosome_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__chromosome_location_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__locus_group_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__ncbi_gene__gene_id_1026%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__ensembl_gene__ensembl_gene_id_104%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__ucsc__ucsc_gene_id_1035%22%2F%3E%3C%2FDataset%3E%3C%2FQuery%3E' \
+  -o "${outputFilePath}"
 }
 
 # arguments:
@@ -228,7 +246,7 @@ validate() {
 }
 
 main() {
-  local -r parsedArgs=$(getopt -a -n pipeline -o l:r:s: --long lumc:,radboud_mumc:,s3:,aws_credentials:,aws_config:,hgnc_biomart_genes: -- "$@")
+  local -r parsedArgs=$(getopt -a -n pipeline -o l:r:s: --long files-list:,release:,server:,hgnc_biomart_genes: -- "$@")
 
   local release=""
   local server=""
@@ -276,6 +294,10 @@ main() {
 
   echo "writing output to ${outputDir}"
 
+  echo "downloading lab data ..."
+  downloadLabData "${release}" "${server}" "${filesList}" "${outputDir}/data"
+  echo "downloading lab data done"
+
   if [[ -z "${hgncBiomartGenesFilePath}" ]]; then
     echo "downloading HGNC BioMart genes ..."
     hgncBiomartGenesFilePath="${outputDir}/downloads/hgnc_genes_$(date +"%Y%m%d").tsv"
@@ -283,13 +305,9 @@ main() {
     echo "downloading HGNC BioMart genes done"
   fi
 
-  echo "downloading lab data ..."
-  downloadLabData "${outputDir}" "${server}" "${filesList}" "${release}"
-  echo "downloading lab data done"
-
   echo "preprocessing data ..."
   local -r preprocessedDataDir="${outputDir}/preprocessed"
-  preprocessData "${preprocessedDataDir}" "${outputDir}"
+  preprocessData "${preprocessedDataDir}" "${outputDir}/data"
   echo "preprocessing data done"
 
   echo "transforming data ..."
