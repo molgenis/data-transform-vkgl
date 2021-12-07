@@ -60,7 +60,7 @@ transformData() {
   dataTransformVersion="2.0.5"
 
   wget -q -c https://github.com/molgenis/data-transform-vkgl/archive/refs/tags/${dataTransformVersion}.tar.gz -O - | tar -xz -C "${outputDir}"
-  wget -q -c https://mirror.lyrahosting.com/apache/maven/maven-3/3.8.1/binaries/apache-maven-3.8.1-bin.tar.gz -O - | tar -xz -C "${outputDir}"
+  wget --no-check-certificate -q -c https://mirror.lyrahosting.com/apache/maven/maven-3/3.8.1/binaries/apache-maven-3.8.1-bin.tar.gz -O - | tar -xz -C "${outputDir}"
 
   local -r dataTransformVkglDir="${outputDir}/data-transform-vkgl-${dataTransformVersion}"
   local -r inboxDir="${dataTransformVkglDir}/src/test/inbox"
