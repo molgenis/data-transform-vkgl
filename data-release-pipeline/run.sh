@@ -10,7 +10,6 @@ usage() {
   echo -e "usage: ${SCRIPT_NAME} -l <arg> -r <arg>
 
 -r, --release   <arg>  required: name of the directory for this release in each home dir on the ftp server.
--s, --server    <arg>  required: name of the ftp server in your ssh config.
 -l, --files-list  <arg> required: path to the file with filenames to include in the rsync download.
 
 --hgnc_biomart_genes <arg>  optional: path to HGNC BioMart gene file (default: download latest dataset)."
@@ -124,8 +123,31 @@ preprocessData() {
     head -n 1 "${entry}" | awk '{print "timestamp\tid\t"$0}' >"${outputFilePath}"
     tail -n +2 "${entry}" | awk '{print "\t\t"$0}' >>"${outputFilePath}"
   done
-  extractData "$labDataDir/radboud/" "$outputDir"
-  extractData "$labDataDir/lumc/" "$outputDir"
+
+  #extract and prefix radboud data
+  workdir="${outputDir}/work";
+  mkdir "${workdir}"
+  for file in ${labDataDir}/radboud/*; do
+    if [ "${file: -4}" == ".zip" ]; then
+      unzip -d "${workdir}" "$file"
+      for tmpFile in $workdir/*; do
+        filename=$(basename $tmpFile)
+        mv "${tmpFile}" "${outputDir}/radboud_${filename}"
+      done
+    else
+        filename=$(basename $file)
+        mv "${file}" "${outputDir}/radboud_${filename}"
+    fi
+  done
+  rm -R "$workdir";
+
+  #extract lumc data
+  for file in ${labDataDir}/lumc/*; do
+    if [[ "${file: -3}" == ".gz" ]]; then
+      filename=$(basename $file ".gz")
+      gzip -dc ${file} >"/$outputDir/${filename}"
+    fi
+  done
 
   # merge VUMC data
   local vumc=""
@@ -157,37 +179,19 @@ preprocessData() {
 }
 
 # arguments:
-#   $2 path to folder containing potential compressed data
-#   $2 path to output folder
-extractData() {
-  local -r inputDir="${1}"
-  local -r outputDir="${2}"
-    for file in $inputDir/*; do
-    if [ "${file: -4}" == ".zip" ]; then
-      unzip -d "$outputDir" "$file"
-    elif [[ "${file: -3}" == ".gz" ]]; then
-      filename=$(basename $file ".gz")
-      gzip -dc ${file} >"/$outputDir/${filename}"
-    fi
-  done
-}
-
-# arguments:
 #   $1 release name
-#   $2 server name
-#   $3 path of the rsync files list
-#   $4 path to output directory
+#   $2 path of the rsync files list
+#   $3 path to output directory
 downloadLabData() {
   local -r release="${1}"
-  local -r server="${2}"
-  local -r filesList="${3}"
-  local -r outputDir="${4}"
+  local -r filesList="${2}"
+  local -r outputDir="${3}"
 
   mkdir -p "${outputDir}"
 
-  rsync -av --include-from "${filesList}" --exclude='*' --rsh='ssh -p 443 -l umcg-vkgl-lumc' "${server}::home/${release}/" "${outputDir}/lumc"
-  rsync -av --include-from "${filesList}" --exclude='*' --rsh='ssh -p 443 -l umcg-vkgl-radboud' "${server}::home/${release}/" "${outputDir}/radboud"
-  rsync -av --include-from "${filesList}" --exclude='*' --rsh='ssh -p 443 -l umcg-vkgl-alissa' "${server}::home/${release}/" "${outputDir}/alissa/"
+  rsync -av --include-from "${filesList}" --exclude='*' --rsh='ssh -p 443 -l umcg-vkgl-lumc' "nb-transfer.hpc.rug.nl::home/${release}/" "${outputDir}/lumc"
+  rsync -av --include-from "${filesList}" --exclude='*' --rsh='ssh -p 443 -l umcg-vkgl-radboud' "nb-transfer.hpc.rug.nl::home/${release}/" "${outputDir}/radboud"
+  rsync -av --include-from "${filesList}" --exclude='*' --rsh='ssh -p 443 -l umcg-vkgl-alissa' "nb-transfer.hpc.rug.nl::home/${release}/" "${outputDir}/alissa/"
 
   module purge
 }
@@ -209,15 +213,13 @@ downloadHgncBiomartGenes() {
 
 # arguments:
 #   $1 Release name (name of the folder on the ftp server)
-#   $2 name of the ftp server as stated in your ssh config
-#   $3 path to the files list for rsync
-#   $4 path to HGNC BioMart gene file (optional)
+#   $2 path to the files list for rsync
+#   $3 path to HGNC BioMart gene file (optional)
 # returns:
 #    1 if input is invalid
 validate() {
   local -r release="${1}"
-  local -r server="${2}"
-  local -r filesList="${3}"
+  local -r filesList="${2}"
   local -r hgncBiomartGenesFilePath="${3}"
 
   if [[ -z "${release}" ]]; then
@@ -225,15 +227,6 @@ validate() {
     return 1
   fi
 
-  if [[ -z "${server}" ]]; then
-    echo -e "missing required argument for option -s / --server."
-    return 1
-  fi
-
-  if [[ -z "${filesList}" ]]; then
-    echo -e "missing required argument for option -l / --files-list."
-    return 1
-  fi
   if [[ ! -f "${filesList}" ]]; then
     echo -e "input ${filesList} for option -l / --files-list does not exist."
     return 1
@@ -246,11 +239,11 @@ validate() {
 }
 
 main() {
-  local -r parsedArgs=$(getopt -a -n pipeline -o l:r:s: --long files-list:,release:,server:,hgnc_biomart_genes: -- "$@")
+  local -r parsedArgs=$(getopt -a -n pipeline -o l:r: --long files-list:,release:,hgnc_biomart_genes: -- "$@")
 
   local release=""
-  local server=""
   local hgncBiomartGenesFilePath=""
+  local filesList=""
 
   eval set -- "${parsedArgs}"
   while :; do
@@ -261,10 +254,6 @@ main() {
       ;;
     -l | --files-list)
       filesList=$(realpath "$2")
-      shift 2
-      ;;
-    -s | --server)
-      server="$2"
       shift 2
       ;;
     --hgnc_biomart_genes)
@@ -282,7 +271,11 @@ main() {
     esac
   done
 
-  if ! validate "${release}" "${server}" "${filesList}" "${hgncBiomartGenesFilePath}"; then
+  if [[ -z "${filesList}" ]]; then
+    filesList="${SCRIPT_DIR}/data-files.txt"
+  fi
+
+  if ! validate "${release}" "${filesList}" "${hgncBiomartGenesFilePath}"; then
     usage
     exit 1
   fi
@@ -295,7 +288,7 @@ main() {
   echo "writing output to ${outputDir}"
 
   echo "downloading lab data ..."
-  downloadLabData "${release}" "${server}" "${filesList}" "${outputDir}/data"
+  downloadLabData "${release}" "${filesList}" "${outputDir}/data"
   echo "downloading lab data done"
 
   if [[ -z "${hgncBiomartGenesFilePath}" ]]; then

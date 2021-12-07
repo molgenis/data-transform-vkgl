@@ -3,11 +3,13 @@
 To do a VKGL release, checkout the tag of data-release you want to run in:
 [Tags](https://github.com/molgenis/data-transform-vkgl/tags).
 
-Run the script by specifying the LUMC data, Radboud/MUMC data, aws credentials and config and
-optionally the s3 bucket data, like this:
+Run the script by specifying the name of the release folder on the sftp, and
+optionally the file containing the file names that should be downloaded (if other than the default provided in "data-files.txt"), like this:
+
+Make sure you have correctly configured key [ssh key forwardin](http://docs.gcc.rug.nl/gearshift/datatransfers/#configure-ssh-agent-forwarding).
 
 ```shell
-./run.sh --lumc lumc.txt --radboud_mumc radboud_mumc.txt --aws_credentials .aws/credentials --aws_config .aws/config --s3 s3
+./run.sh --release 202112 --files-list /path/to/files/list
 ```
 
 For more information use the `--help` option.
