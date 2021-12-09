@@ -54,19 +54,26 @@ public class HgncGeneValidator {
 
   protected String getValidatedGene(String gene) throws InvalidGeneException {
     if (this.getGenes().containsKey(gene.toLowerCase())) {
-      if (this.isValidGene(gene)) {
-        return gene;
-      } else {
-        throw new InvalidGeneException(
-            gene + " has been found with status: " + this.getGeneStatus(gene));
-      }
+      validateApprovedGene(gene);
+      return gene;
     } else {
       String translatedGene = this.translateGene(gene);
       if (translatedGene != null) {
+        validateApprovedGene(translatedGene);
         return translatedGene;
       } else {
         throw new InvalidGeneException("No valid gene symbol can be found for: " + gene);
       }
+    }
+  }
+
+  /**
+   * @throws InvalidGeneException if the gene is invalid
+   */
+  private void validateApprovedGene(String gene) throws InvalidGeneException {
+    if (!this.isValidGene(gene)) {
+      throw new InvalidGeneException(
+          gene + " has been found with status: " + this.getGeneStatus(gene));
     }
   }
 

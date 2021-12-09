@@ -9,6 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.molgenis.utils.InvalidGeneException;
 
 class HgncGeneValidatorTest {
@@ -108,5 +110,51 @@ class HgncGeneValidatorTest {
   void getValidatedGeneWithdrawn() {
     assertThrows(InvalidGeneException.class, () -> service.getValidatedGene("ACAD"),
         "ACAD has been found with status: Entry Withdrawn");
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"APPL", "APPL1", "ZWINTAS", "ZWINT", "MPP5"})
+  void getValidatedGeneEntryWithdrawn(String hgncGeneSymbol) {
+    Map<String, String> zwintasGene = new HashMap<>();
+    zwintasGene.put("hgnc_id", "HGNC:13196");
+    zwintasGene.put("previous_symbol", "");
+    zwintasGene.put("locus_group", "non-coding RNA");
+    zwintasGene.put("ensembl_gene_id", "");
+    zwintasGene.put("chromosome", "10");
+    zwintasGene.put("ucsc_gene_id", "");
+    zwintasGene.put("approved_symbol", "ZWINTAS");
+    zwintasGene.put("approved_name", "ZWINT antisense RNA");
+    zwintasGene.put("alias_symbol", "MPP5");
+    zwintasGene.put("status", "Entry Withdrawn");
+    zwintasGene.put("chromosome_location", "10q21.1");
+    zwintasGene.put("ncbi_gene_id", "");
+
+    Map<String, String> applGene = new HashMap<>();
+    applGene.put("hgnc_id", "HGNC:623");
+    applGene.put("previous_symbol", "APPL1");
+    applGene.put("locus_group", "other");
+    applGene.put("ensembl_gene_id", "");
+    applGene.put("chromosome", "9");
+    applGene.put("ucsc_gene_id", "");
+    applGene.put("approved_symbol", "APPL");
+    applGene.put("approved_name", "amyloid beta (A4) precursor protein-like");
+    applGene.put("alias_symbol", "");
+    applGene.put("status", "Entry Withdrawn");
+    applGene.put("chromosome_location", "9q31-qter");
+    applGene.put("ncbi_gene_id", "");
+
+    Map<String, Map<String, String>> genes = new HashMap<>();
+    genes.put("zwintas", zwintasGene);
+    genes.put("appl", applGene);
+
+    Map<String, String> previousGeneAliases = new HashMap<>();
+    previousGeneAliases.put("mpp5", "zwintas");
+    previousGeneAliases.put("appl1", "appl");
+
+    HgncGeneValidator hgncGeneValidator = new HgncGeneValidator(genes,
+        previousGeneAliases);
+
+    assertThrows(InvalidGeneException.class,
+        () -> hgncGeneValidator.getValidatedGene(hgncGeneSymbol));
   }
 }
