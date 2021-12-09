@@ -82,7 +82,7 @@ transformData() {
       echo "error occurred processing files, see ${outputDir}/transform.log"
       break
     fi
-    newNumProcessedFiles="$(grep -cE "\[.+ - Delay\] done" "${outputDir}/transform.log")"
+    newNumProcessedFiles="$(grep -cE "\[eTimeoutChecker\] done" "${outputDir}/transform.log")"
     set -e
     if [[ "${newNumProcessedFiles}" -gt "${numProcessedFiles}" ]]; then
       echo "processed ${newNumProcessedFiles}/${numFiles} files ..."
