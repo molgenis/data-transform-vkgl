@@ -10,7 +10,7 @@ usage() {
   echo -e "usage: ${SCRIPT_NAME} -l <arg> -r <arg>
 
 -r, --release   <arg>  required: name of the directory for this release in each home dir on the ftp server.
--l, --files-list  <arg> required: path to the file with filenames to include in the rsync download.
+-l, --files-list  <arg> optional: path to the file with filenames to include in the rsync download.
 
 --hgnc_biomart_genes <arg>  optional: path to HGNC BioMart gene file (default: download latest dataset)."
 }
