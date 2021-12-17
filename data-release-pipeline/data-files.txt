@@ -1,0 +1,10 @@
+vkgl_export_amc_20*.tsv
+vkgl_export_erasmusmc_20*.tsv
+vkgl_export_nki_20*.tsv
+vkgl_export_umcg_20*.tsv
+vkgl_export_umcg_artefact_totaal_20*.tsv
+vkgl_export_umcutrecht_20*.tsv
+vkgl_export_vumc_20*.tsv
+vkgl_export_vumc_wes_20*.tsv
+*_export_variants_for_VKGL.normalized.unique.txt.gz
+*_classifications.*

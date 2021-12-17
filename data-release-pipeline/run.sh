@@ -9,12 +9,9 @@ set -euo pipefail
 usage() {
   echo -e "usage: ${SCRIPT_NAME} -l <arg> -r <arg>
 
--l, --lumc           <arg>  required: path to VKGL LUMC variant file.
--r, --radboud_mumc   <arg>  required: path to VKGL Radboudumc/MUMC variant file.
--s, --s3             <arg>  optional: path to folder containing downloaded Amazon S3 variant files.
+-r, --release   <arg>  required: name of the directory for this release in each home dir on the ftp server.
+-l, --files-list  <arg> optional: path to the file with filenames to include in the rsync download.
 
---aws_credentials    <arg>  optional: path to Amazon S3 credentials file (default: .aws/credentials).
---aws_config         <arg>  optional: path to Amazon S3 config file (default: .aws/config).
 --hgnc_biomart_genes <arg>  optional: path to HGNC BioMart gene file (default: download latest dataset)."
 }
 
@@ -59,10 +56,10 @@ transformData() {
 
   mkdir -p "${outputDir}"
 
-  dataTransformVersion="2.1.0"
+  dataTransformVersion="2.1.1"
 
   wget -q -c https://github.com/molgenis/data-transform-vkgl/archive/refs/tags/${dataTransformVersion}.tar.gz -O - | tar -xz -C "${outputDir}"
-  wget -q -c https://mirror.lyrahosting.com/apache/maven/maven-3/3.8.1/binaries/apache-maven-3.8.1-bin.tar.gz -O - | tar -xz -C "${outputDir}"
+  wget --no-check-certificate -q -c https://mirror.lyrahosting.com/apache/maven/maven-3/3.8.1/binaries/apache-maven-3.8.1-bin.tar.gz -O - | tar -xz -C "${outputDir}"
 
   local -r dataTransformVkglDir="${outputDir}/data-transform-vkgl-${dataTransformVersion}"
   local -r inboxDir="${dataTransformVkglDir}/src/test/inbox"
@@ -85,7 +82,7 @@ transformData() {
       echo "error occurred processing files, see ${outputDir}/transform.log"
       break
     fi
-    newNumProcessedFiles="$(grep -cE "\[.+ - Delay\] done" "${outputDir}/transform.log")"
+    newNumProcessedFiles="$(grep -cE "\[eTimeoutChecker\] done" "${outputDir}/transform.log")"
     set -e
     if [[ "${newNumProcessedFiles}" -gt "${numProcessedFiles}" ]]; then
       echo "processed ${newNumProcessedFiles}/${numFiles} files ..."
@@ -111,27 +108,45 @@ transformData() {
 
 # arguments:
 #   $1 path to output directory
-#   $2 path to VKGL LUMC variant file
-#   $3 path to VKGL Radboudumc/MUMC variant file
-#   $4 path to folder containing downloaded Amazon S3 variant files
+#   $2 path to folder containing downloaded variant files
 preprocessData() {
   local -r outputDir="${1}"
-  local -r lumcFilePath="${2}"
-  local -r radboudMumcFilePath="${3}"
-  local -r s3Dir="${4}"
+  local -r labDataDir="${2}"
 
   mkdir -p "${outputDir}"
 
-  cp "${lumcFilePath}" "${outputDir}"
-  cp "${radboudMumcFilePath}" "${outputDir}"
-
   # prepend empty timestamp and id column to S3 data
   local outputFilePath=""
-  for entry in "${s3Dir}"/*; do
+  for entry in "${labDataDir}"/alissa/*; do
     [[ -f "${entry}" && "${entry}" != *.log ]] || continue
     outputFilePath="${outputDir}/$(basename "${entry}")"
     head -n 1 "${entry}" | awk '{print "timestamp\tid\t"$0}' >"${outputFilePath}"
     tail -n +2 "${entry}" | awk '{print "\t\t"$0}' >>"${outputFilePath}"
+  done
+
+  #extract and prefix radboud data
+  workdir="${outputDir}/work";
+  mkdir "${workdir}"
+  for file in ${labDataDir}/radboud/*; do
+    if [ "${file: -4}" == ".zip" ]; then
+      unzip -d "${workdir}" "$file"
+      for tmpFile in $workdir/*; do
+        filename=$(basename $tmpFile)
+        mv "${tmpFile}" "${outputDir}/radboud_${filename}"
+      done
+    else
+        filename=$(basename $file)
+        mv "${file}" "${outputDir}/radboud_${filename}"
+    fi
+  done
+  rm -R "$workdir";
+
+  #extract lumc data
+  for file in ${labDataDir}/lumc/*; do
+    if [[ "${file: -3}" == ".gz" ]]; then
+      filename=$(basename $file ".gz")
+      gzip -dc ${file} >"/$outputDir/${filename}"
+    fi
   done
 
   # merge VUMC data
@@ -145,9 +160,11 @@ preprocessData() {
     fi
   done
   if [[ -z ${vumc} ]]; then
+    echo "Missing VU data."
     exit 1
   fi
   if [[ -z ${vumcWes} ]]; then
+    echo "Missing VU WES data."
     exit 1
   fi
   tail -n +2 "${vumcWes}" >>"${vumc}"
@@ -162,28 +179,19 @@ preprocessData() {
 }
 
 # arguments:
-#   $1 path to output directory
-#   $2 path to Amazon S3 credentials file
-#   $3 path to Amazon S3 config file
-downloadS3LabData() {
-  local -r outputDir="${1}"
-  local -r awsCredentialsFilePath="${2}"
-  local -r awsConfigFilePath="${3}"
+#   $1 release name
+#   $2 path of the rsync files list
+#   $3 path to output directory
+downloadLabData() {
+  local -r release="${1}"
+  local -r filesList="${2}"
+  local -r outputDir="${3}"
 
   mkdir -p "${outputDir}"
-  module load Python/3.9.1-GCCcore-7.3.0-bare 1>/dev/null
 
-  export AWS_SHARED_CREDENTIALS_FILE="${awsCredentialsFilePath}"
-  export AWS_CONFIG_FILE="${awsConfigFilePath}"
-
-  # install python
-  local -r pythonVenv="${outputDir}/python_venv"
-  python -m venv "${pythonVenv}" 1>/dev/null
-  . "${pythonVenv}/bin/activate" 1>/dev/null
-  python -m pip install --disable-pip-version-check boto3 1>/dev/null
-
-  # run script
-  python "${SCRIPT_DIR}/vkgl_labs_download.py" "${outputDir}" 1>"${outputDir}/download.log"
+  rsync -av --include-from "${filesList}" --exclude='*' --rsh='ssh -p 443 -l umcg-vkgl-lumc' "nb-transfer.hpc.rug.nl::home/${release}/" "${outputDir}/lumc"
+  rsync -av --include-from "${filesList}" --exclude='*' --rsh='ssh -p 443 -l umcg-vkgl-radboud' "nb-transfer.hpc.rug.nl::home/${release}/" "${outputDir}/radboud"
+  rsync -av --include-from "${filesList}" --exclude='*' --rsh='ssh -p 443 -l umcg-vkgl-alissa' "nb-transfer.hpc.rug.nl::home/${release}/" "${outputDir}/alissa/"
 
   module purge
 }
@@ -196,60 +204,32 @@ downloadHgncBiomartGenes() {
   mkdir -p "$(dirname "${outputFilePath}")"
 
   curl 'https://biomart.genenames.org/martservice/results' \
-    -s \
-    --compressed \
-    -H 'Content-Type: application/x-www-form-urlencoded' \
-    --data 'download=true&query=%3C%21DOCTYPE+Query%3E%3CQuery+client%3D%22biomartclient%22+processor%3D%22TSV%22+limit%3D%22-1%22+header%3D%221%22%3E%3CDataset+name%3D%22hgnc_gene_mart%22+config%3D%22hgnc_gene_config%22%3E%3CAttribute+name%3D%22hgnc_gene__hgnc_gene_id_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__status_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__approved_symbol_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__approved_name_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__hgnc_alias_symbol__alias_symbol_108%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__hgnc_previous_symbol__previous_symbol_1012%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__chromosome_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__chromosome_location_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__locus_group_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__ncbi_gene__gene_id_1026%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__ensembl_gene__ensembl_gene_id_104%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__ucsc__ucsc_gene_id_1035%22%2F%3E%3C%2FDataset%3E%3C%2FQuery%3E' \
-    -o "${outputFilePath}"
+  -s \
+  --compressed \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  --data 'download=true&query=%3C%21DOCTYPE+Query%3E%3CQuery+client%3D%22biomartclient%22+processor%3D%22TSV%22+limit%3D%22-1%22+header%3D%221%22%3E%3CDataset+name%3D%22hgnc_gene_mart%22+config%3D%22hgnc_gene_config%22%3E%3CAttribute+name%3D%22hgnc_gene__hgnc_gene_id_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__status_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__approved_symbol_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__approved_name_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__hgnc_alias_symbol__alias_symbol_108%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__hgnc_previous_symbol__previous_symbol_1012%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__chromosome_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__chromosome_location_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__locus_group_1010%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__ncbi_gene__gene_id_1026%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__ensembl_gene__ensembl_gene_id_104%22%2F%3E%3CAttribute+name%3D%22hgnc_gene__ucsc__ucsc_gene_id_1035%22%2F%3E%3C%2FDataset%3E%3C%2FQuery%3E' \
+  -o "${outputFilePath}"
 }
 
 # arguments:
-#   $1 path to VKGL LUMC variant file
-#   $2 path to VKGL Radboudumc/MUMC variant file
-#   $3 path to folder containing downloaded Amazon S3 variant files (optional)
-#   $4 path to Amazon S3 credentials file
-#   $5 path to Amazon S3 config file
-#   $6 path to HGNC BioMart gene file (optional)
+#   $1 Release name (name of the folder on the ftp server)
+#   $2 path to the files list for rsync
+#   $3 path to HGNC BioMart gene file (optional)
 # returns:
 #    1 if input is invalid
 validate() {
-  local -r lumcFilePath="${1}"
-  local -r radboudMumcFilePath="${2}"
-  local -r s3Dir="${3}"
-  local -r awsCredentialsFilePath="${4}"
-  local -r awsConfigFilePath="${5}"
-  local -r hgncBiomartGenesFilePath="${6}"
+  local -r release="${1}"
+  local -r filesList="${2}"
+  local -r hgncBiomartGenesFilePath="${3}"
 
-  if [[ -z "${lumcFilePath}" ]]; then
-    echo -e "missing required argument for option -l / --lumc."
-    return 1
-  fi
-  if [[ ! -f "${lumcFilePath}" ]]; then
-    echo -e "input ${lumcFilePath} for option -l / --lumc does not exist."
+  if [[ -z "${release}" ]]; then
+    echo -e "missing required argument for option -r / --release."
     return 1
   fi
 
-  if [[ -z "${radboudMumcFilePath}" ]]; then
-    echo -e "missing required argument for option -r / --radboud_mumc."
+  if [[ ! -f "${filesList}" ]]; then
+    echo -e "input ${filesList} for option -l / --files-list does not exist."
     return 1
-  fi
-  if [[ ! -f "${radboudMumcFilePath}" ]]; then
-    echo -e "input ${radboudMumcFilePath} for option -r / --radboud_mumc does not exist."
-    return 1
-  fi
-
-  if [[ -n "${s3Dir}" ]] && [[ ! -d "${s3Dir}" ]]; then
-    echo -e "input ${s3Dir} for option -s / --s3 does not exist."
-    return 1
-  else
-    if [[ ! -f "${awsCredentialsFilePath}" ]]; then
-      echo -e "input ${awsCredentialsFilePath} for option --aws_credentials does not exist."
-      return 1
-    fi
-    if [[ ! -f "${awsConfigFilePath}" ]]; then
-      echo -e "input ${awsConfigFilePath} for option --aws_config does not exist."
-      return 1
-    fi
   fi
 
   if [[ -n "${hgncBiomartGenesFilePath}" ]] && [[ ! -f "${hgncBiomartGenesFilePath}" ]]; then
@@ -259,36 +239,21 @@ validate() {
 }
 
 main() {
-  local -r parsedArgs=$(getopt -a -n pipeline -o l:r:s: --long lumc:,radboud_mumc:,s3:,aws_credentials:,aws_config:,hgnc_biomart_genes: -- "$@")
+  local -r parsedArgs=$(getopt -a -n pipeline -o l:r: --long files-list:,release:,hgnc_biomart_genes: -- "$@")
 
-  local lumcFilePath=""
-  local radboudMumcFilePath=""
-  local s3Dir=""
-  local awsCredentialsFilePath=".aws/credentials"
-  local awsConfigFilePath=".aws/config"
+  local release=""
   local hgncBiomartGenesFilePath=""
+  local filesList=""
 
   eval set -- "${parsedArgs}"
   while :; do
     case "$1" in
-    -l | --lumc)
-      lumcFilePath=$(realpath "$2")
+    -r | --release)
+      release="$2"
       shift 2
       ;;
-    -r | --radboud_mumc)
-      radboudMumcFilePath=$(realpath "$2")
-      shift 2
-      ;;
-    -s | --s3)
-      s3Dir="$2"
-      shift 2
-      ;;
-    --aws_credentials)
-      awsCredentialsFilePath=$(realpath "$2")
-      shift 2
-      ;;
-    --aws_config)
-      awsConfigFilePath=$(realpath "$2")
+    -l | --files-list)
+      filesList=$(realpath "$2")
       shift 2
       ;;
     --hgnc_biomart_genes)
@@ -306,7 +271,11 @@ main() {
     esac
   done
 
-  if ! validate "${lumcFilePath}" "${radboudMumcFilePath}" "${s3Dir}" "${awsCredentialsFilePath}" "${awsConfigFilePath}" "${hgncBiomartGenesFilePath}"; then
+  if [[ -z "${filesList}" ]]; then
+    filesList="${SCRIPT_DIR}/data-files.txt"
+  fi
+
+  if ! validate "${release}" "${filesList}" "${hgncBiomartGenesFilePath}"; then
     usage
     exit 1
   fi
@@ -318,6 +287,10 @@ main() {
 
   echo "writing output to ${outputDir}"
 
+  echo "downloading lab data ..."
+  downloadLabData "${release}" "${filesList}" "${outputDir}/data"
+  echo "downloading lab data done"
+
   if [[ -z "${hgncBiomartGenesFilePath}" ]]; then
     echo "downloading HGNC BioMart genes ..."
     hgncBiomartGenesFilePath="${outputDir}/downloads/hgnc_genes_$(date +"%Y%m%d").tsv"
@@ -325,16 +298,9 @@ main() {
     echo "downloading HGNC BioMart genes done"
   fi
 
-  if [[ -z "${s3Dir}" ]]; then
-    echo "downloading S3 lab data ..."
-    s3Dir="${outputDir}/downloads/s3"
-    downloadS3LabData "${s3Dir}" "${awsCredentialsFilePath}" "${awsConfigFilePath}"
-    echo "downloading S3 lab data done"
-  fi
-
   echo "preprocessing data ..."
   local -r preprocessedDataDir="${outputDir}/preprocessed"
-  preprocessData "${preprocessedDataDir}" "${lumcFilePath}" "${radboudMumcFilePath}" "${s3Dir}"
+  preprocessData "${preprocessedDataDir}" "${outputDir}/data"
   echo "preprocessing data done"
 
   echo "transforming data ..."
