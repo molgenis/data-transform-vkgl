@@ -4,6 +4,8 @@
 if [[ -n "${SLURM_JOB_ID}" ]]; then SCRIPT_DIR=$(dirname "$(scontrol show job "${SLURM_JOB_ID}" | awk -F= '/Command=/{print $2}' | cut -d ' ' -f 1)"); else SCRIPT_DIR=$(dirname "$(realpath "$0")"); fi
 SCRIPT_NAME="$(basename "$0")"
 
+dataTransformVkglDir=
+
 set -euo pipefail
 
 usage() {
@@ -30,14 +32,14 @@ generateConsensus() {
 
   local args=()
   args+=("-jar" "vkgl-consensus.jar")
-  args+=("--amc" "${inputDir}/vkgl_vkgl_export_amc_20210614.tsv")
-  args+=("--erasmus_mc" "${inputDir}/vkgl_vkgl_export_erasmusmc_20210614.tsv")
-  args+=("--lumc" "${inputDir}/vkgl_lumc.tsv")
-  args+=("--nki" "${inputDir}/vkgl_vkgl_export_nki_20210614.tsv")
-  args+=("--radboud_mumc" "${inputDir}/vkgl_radboud_mumc.tsv")
-  args+=("--umc_utrecht" "${inputDir}/vkgl_vkgl_export_umcutrecht_20210614.tsv")
-  args+=("--vumc" "${inputDir}/vkgl_vkgl_export_vumc_20210614.tsv")
-  args+=("--umcg" "${inputDir}/vkgl_vkgl_export_umcg_20210614.tsv")
+  args+=("--amc" "${inputDir}/vkgl_export_amc.tsv")
+  args+=("--erasmus_mc" "${inputDir}/vkgl_export_erasmusmc.tsv")
+  args+=("--lumc" "${inputDir}/vkgl_export_lumc.tsv")
+  args+=("--nki" "${inputDir}/vkgl_export_nki.tsv")
+  args+=("--radboud_mumc" "${inputDir}/vkgl_export_radboud_mumc.tsv")
+  args+=("--umc_utrecht" "${inputDir}/vkgl_export_umcutrecht.tsv")
+  args+=("--vumc" "${inputDir}/vkgl_export_vumc.tsv")
+  args+=("--umcg" "${inputDir}/vkgl_export_umcg.tsv")
   args+=("-o" "${outputDir}/consensus.tsv")
 
   java "${args[@]}"
@@ -56,12 +58,9 @@ transformData() {
 
   mkdir -p "${outputDir}"
 
-  dataTransformVersion="2.1.1"
+  wget --no-check-certificate -q -c https://mirror.lyrahosting.com/apache/maven/maven-3/3.8.7/binaries/apache-maven-3.8.7-bin.tar.gz -O - | tar -xz -C "${outputDir}"
 
-  wget -q -c https://github.com/molgenis/data-transform-vkgl/archive/refs/tags/${dataTransformVersion}.tar.gz -O - | tar -xz -C "${outputDir}"
-  wget --no-check-certificate -q -c https://mirror.lyrahosting.com/apache/maven/maven-3/3.8.1/binaries/apache-maven-3.8.1-bin.tar.gz -O - | tar -xz -C "${outputDir}"
-
-  local -r dataTransformVkglDir="${outputDir}/data-transform-vkgl-${dataTransformVersion}"
+  local -r dataTransformVkglDir="$(dirname "${SCRIPT_DIR}")"
   local -r inboxDir="${dataTransformVkglDir}/src/test/inbox"
   mkdir -p "${inboxDir}"
   cp "${inputDir}"/* "${inboxDir}"
@@ -71,7 +70,7 @@ transformData() {
   local -r numFiles=${#numFilesArr[@]}
 
   module load Java
-  "${outputDir}/apache-maven-3.8.1/bin/mvn" -f "${dataTransformVkglDir}/pom.xml" clean spring-boot:run -Dspring-boot.run.arguments="--server.port=0 --hgnc.genes=${hgncBiomartGenesFilePath}" >"${outputDir}/transform.log" 2>&1 &
+  "${outputDir}/apache-maven-3.8.7/bin/mvn" -f "${dataTransformVkglDir}/pom.xml" clean spring-boot:run -Dspring-boot.run.arguments="--server.port=0 --hgnc.genes=${hgncBiomartGenesFilePath}" >"${outputDir}/transform.log" 2>&1 &
   local -r javaPid=$!
 
   local numProcessedFiles="0"
@@ -95,6 +94,7 @@ transformData() {
     sleep 10
   done
 
+  sleep 5m 30s
   kill "${javaPid}"
   module purge
 
@@ -119,7 +119,8 @@ preprocessData() {
   local outputFilePath=""
   for entry in "${labDataDir}"/alissa/*; do
     [[ -f "${entry}" && "${entry}" != *.log ]] || continue
-    outputFilePath="${outputDir}/$(basename "${entry}")"
+    tmpFile="${entry//_${release}/}"
+    outputFilePath="${outputDir}/$(basename "${tmpFile//vkgl_/}")"
     head -n 1 "${entry}" | awk '{print "timestamp\tid\t"$0}' >"${outputFilePath}"
     tail -n +2 "${entry}" | awk '{print "\t\t"$0}' >>"${outputFilePath}"
   done
@@ -132,11 +133,14 @@ preprocessData() {
       unzip -d "${workdir}" "$file"
       for tmpFile in $workdir/*; do
         filename=$(basename $tmpFile)
-        mv "${tmpFile}" "${outputDir}/radboud_${filename}"
+        mv "${tmpFile}" "${outputDir}/export_radboud_mumc.${filename##*.}"
       done
+    elif [[ "${file: -3}" == ".gz" ]]; then
+      filename=$(basename $file ".gz")
+      gzip -dc ${file} >"/$outputDir/export_radboud_mumc.${filename##*.}"
     else
         filename=$(basename $file)
-        mv "${file}" "${outputDir}/radboud_${filename}"
+        mv "${file}" "${outputDir}/export_radboud_mumc.${filename##*.}"
     fi
   done
   rm -R "$workdir";
@@ -145,7 +149,7 @@ preprocessData() {
   for file in ${labDataDir}/lumc/*; do
     if [[ "${file: -3}" == ".gz" ]]; then
       filename=$(basename $file ".gz")
-      gzip -dc ${file} >"/$outputDir/${filename}"
+      gzip -dc ${file} >"/$outputDir/export_lumc.${filename##*.}"
     fi
   done
 
@@ -153,9 +157,9 @@ preprocessData() {
   local vumc=""
   local vumcWes=""
   for entry in "${outputDir}"/*; do
-    if [[ $(basename "${entry}") =~ vkgl_export_vumc_[[:digit:]]{8}\.tsv ]]; then
+    if [[ $(basename "${entry}") =~ export_vumc.tsv ]]; then
       vumc="${entry}"
-    elif [[ $(basename "${entry}") =~ vkgl_export_vumc_wes_[[:digit:]]{8}\.tsv ]]; then
+    elif [[ $(basename "${entry}") =~ export_vumc_wes.tsv ]]; then
       vumcWes="${entry}"
     fi
   done
@@ -310,7 +314,7 @@ main() {
 
   echo "generating consensus ..."
   local -r consensusDataDir="${outputDir}/consensus"
-  generateConsensus "${transformedDataDir}" "${consensusDataDir}"
+  generateConsensus "${transformedDataDir}" "${consensusDataDir}" "${release}"
   echo "generating consensus done"
 
   echo "running done"
